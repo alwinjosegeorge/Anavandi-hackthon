@@ -65,8 +65,8 @@ function StatusDot({ tone = "success" }: { tone?: "success" | "warning" | "dange
 
 function Header({ title, back, right }: { title: string; back?: () => void; right?: React.ReactNode }) {
   return (
-    <header className="grid h-16 grid-cols-[44px_minmax(0,1fr)_44px] items-center px-4">
-      {back ? <Button aria-label="Go back" size="icon" variant="ghost" onClick={back}><ArrowLeft /></Button> : <span />}
+    <header className="grid h-16 grid-cols-[44px_minmax(0,1fr)_44px] items-center px-4 md:hidden">
+      {back ? <Button aria-label="Go back" size="icon" variant="ghost" onClick={back}><ArrowLeft className="size-5" /></Button> : <span />}
       <h1 className="truncate text-center text-base font-bold">{title}</h1>
       <div className="flex justify-end">{right}</div>
     </header>
@@ -411,6 +411,54 @@ export function NightwatchApp() {
   const [searchQuery, setSearchQuery] = useState("");
   const [customInput, setCustomInput] = useState("");
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [selectedHistoryIndex, setSelectedHistoryIndex] = useState(0);
+
+  const pastJourneys = [
+    {
+      from: "Marine Drive KSRTC",
+      to: "Kakkanad Bus Terminal",
+      date: "Yesterday · 11:06 PM",
+      duration: "42 min",
+      distance: "14.2 km",
+      status: "Safe & On Schedule",
+      checkpoints: "3 of 3 Passed",
+      fromPoint: { name: "Marine Drive KSRTC", detail: "KSRTC Terminal · Ernakulam", coords: [9.9790, 76.2760] as [number, number] },
+      toPoint: { name: "Kakkanad Bus Terminal", detail: "Civil Station Junction · Ernakulam", coords: [10.0159, 76.3419] as [number, number] },
+    },
+    {
+      from: "Fort Kochi Bus Stand",
+      to: "Edappally Toll Stand",
+      date: "Sep 17 · 10:32 PM",
+      duration: "36 min",
+      distance: "18.5 km",
+      status: "Safe & Verified",
+      checkpoints: "3 of 3 Passed",
+      fromPoint: { name: "Fort Kochi Bus Stand", detail: "Customs Jetty Stand · Ernakulam", coords: [9.9660, 76.2440] as [number, number] },
+      toPoint: { name: "Edappally Toll Stand", detail: "Metro Station Stand · Ernakulam", coords: [10.0261, 76.3085] as [number, number] },
+    },
+    {
+      from: "Vyttila Mobility Hub",
+      to: "Kalamassery Premier",
+      date: "Sep 12 · 9:48 PM",
+      duration: "31 min",
+      distance: "11.8 km",
+      status: "Safe & Verified",
+      checkpoints: "3 of 3 Passed",
+      fromPoint: { name: "Vyttila Mobility Hub", detail: "Interstate Bus Terminal · Ernakulam", coords: [9.9678, 76.3195] as [number, number] },
+      toPoint: { name: "Kalamassery Premier", detail: "Town Bus Stand · Ernakulam", coords: [10.0534, 76.3192] as [number, number] },
+    },
+    {
+      from: "Thampanoor KSRTC Central",
+      to: "Attingal KSRTC Stand",
+      date: "Sep 08 · 11:15 PM",
+      duration: "52 min",
+      distance: "32.0 km",
+      status: "Safe & Verified",
+      checkpoints: "4 of 4 Passed",
+      fromPoint: { name: "Thampanoor KSRTC Central", detail: "Central Bus Terminal · Thiruvananthapuram", coords: [8.4875, 76.9525] as [number, number] },
+      toPoint: { name: "Attingal KSRTC Bus Stand", detail: "KSRTC Sub Depot · Thiruvananthapuram", coords: [8.6948, 76.8152] as [number, number] },
+    },
+  ];
 
   const filteredStands = KERALA_BUS_STANDS.filter((loc) => {
     const matchesDistrict =
@@ -571,9 +619,26 @@ export function NightwatchApp() {
                 <p className="text-sm text-muted-foreground font-medium">Good evening,</p>
                 <h1 className="text-2xl lg:text-3xl font-black">Alwin</h1>
               </div>
-              <Button aria-label="Notifications" size="icon" variant="outline" onClick={() => go("notifications")}>
-                <Bell className="size-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  aria-label="Toggle Dark Mode"
+                  size="icon"
+                  variant="outline"
+                  className="md:hidden size-9 rounded-xl"
+                  onClick={() => setDark(!dark)}
+                >
+                  {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                </Button>
+                <Button
+                  aria-label="Notifications"
+                  size="icon"
+                  variant="outline"
+                  className="size-9 rounded-xl"
+                  onClick={() => go("notifications")}
+                >
+                  <Bell className="size-4" />
+                </Button>
+              </div>
             </div>
 
             <section className="overflow-hidden rounded-2xl bg-foreground p-5 text-primary-foreground shadow-lift">
@@ -666,6 +731,28 @@ export function NightwatchApp() {
                 <Check className="size-5 text-success" />
               </button>
             </section>
+
+            {/* Quick Kerala Transit Stand Explorer (Mobile Only) */}
+            <div className="md:hidden rounded-2xl border border-primary/20 bg-primary-soft/50 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bus className="size-4 text-primary" />
+                  <span className="text-xs font-black uppercase text-primary">Kerala Transit Network</span>
+                </div>
+                <span className="rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-[10px] font-bold">14 Districts</span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                100+ KSRTC Depots, Private Stands & Night Transit Corridors.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 w-full text-xs font-bold"
+                onClick={() => setDatasetOpen(true)}
+              >
+                <Database className="size-3.5 mr-1.5 text-primary" /> Open KSRTC Dataset
+              </Button>
+            </div>
           </div>
 
           {/* Right Column (Web View on desktop only): High-Res Kerala Satellite Map & Metrics */}
@@ -962,9 +1049,9 @@ export function NightwatchApp() {
           </div>
         </div>
 
-        {/* Mobile View (Preserved exactly) */}
-        <div className="relative min-h-[760px] md:hidden rounded-2xl overflow-hidden border">
-          <NightwatchLeafletMap dark={dark} from={fromLoc} to={toLoc} className="min-h-[760px] h-[760px]" />
+        {/* Mobile View (Full Viewport App Experience) */}
+        <div className="relative min-h-[560px] h-[calc(100dvh-32px)] md:hidden rounded-2xl overflow-hidden border">
+          <NightwatchLeafletMap dark={dark} from={fromLoc} to={toLoc} className="min-h-[560px] h-full w-full" />
           <div className="absolute inset-x-4 top-4 rounded-lg bg-surface/95 p-4 shadow-lift backdrop-blur">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-xs font-black"><StatusDot/> JOURNEY NORMAL</span>
@@ -997,18 +1084,700 @@ export function NightwatchApp() {
         </div>
       </div>
     );
-    if (view === "safety") { const checks: Array<{ icon: LucideIcon; title: string; sub: string }> = [{icon:RouteIcon,title:"Route on track",sub:"No unexpected changes"},{icon:Navigation,title:"Movement normal",sub:"Steady movement detected"},{icon:Clock3,title:`ETA ${tripStats.eta}`,sub:`${tripStats.durationMins} remaining`},{icon:ContactRound,title:"Mom connected",sub:"Updated just now"}]; return <div className="w-full max-w-2xl mx-auto"><Header title="Journey safety" back={() => go("active")}/><div className="px-5 pb-24"><div className="flex flex-col items-center py-8 text-center"><div className="grid size-24 place-items-center rounded-full bg-success-soft"><ShieldCheck className="size-12 text-success"/></div><p className="mt-5 text-xs font-black text-success">JOURNEY NORMAL</p><h2 className="mt-2 text-2xl font-black">Everything looks good</h2><p className="mt-2 text-sm text-muted-foreground">Monitoring your trip to {toLoc.name}</p></div><div className="rounded-lg border bg-surface p-4 shadow-soft">{checks.map(({icon: Icon,title,sub}) => <div key={title} className="flex items-center gap-3 border-b py-3 last:border-0"><div className="grid size-9 place-items-center rounded-md bg-muted"><Icon className="size-4"/></div><div className="flex-1"><p className="text-sm font-bold">{title}</p><p className="text-xs text-muted-foreground">{sub}</p></div><Check className="size-4 text-success"/></div>)}</div><Button variant="outline" className="mt-5 h-11 w-full" onClick={() => setSos("confirm")}><Phone/> Emergency options</Button></div></div>; }
+    if (view === "safety") {
+      const checks: Array<{ icon: LucideIcon; title: string; sub: string }> = [
+        { icon: RouteIcon, title: "Route on track", sub: "No unexpected path changes or detours detected" },
+        { icon: Navigation, title: "Movement normal", sub: "Steady passenger transit velocity maintained" },
+        { icon: Clock3, title: `ETA ${tripStats.eta}`, sub: `${tripStats.durationMins} remaining to arrival` },
+        { icon: ContactRound, title: "Mom connected", sub: "Live location telemetry synced (Just now)" },
+      ];
+
+      return (
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 md:pb-12">
+          {/* Mobile Header */}
+          <div className="md:hidden">
+            <Header title="Journey safety" back={() => go("active")} />
+          </div>
+
+          {/* Desktop Heading */}
+          <div className="hidden md:flex items-center justify-between pb-6 mb-6 border-b">
+            <div className="flex items-center gap-3">
+              <Button size="icon" variant="ghost" onClick={() => go("active")}>
+                <ArrowLeft className="size-4" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-black">Safety Corridor Intelligence</h1>
+                <p className="text-xs text-muted-foreground font-semibold">
+                  Continuous highway telemetry, automated anomaly evaluation & emergency cell readiness
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-success-soft text-success font-bold px-3 py-1 text-xs flex items-center gap-1.5 border border-success/30">
+                <span className="size-2 rounded-full bg-success animate-pulse" /> All Systems Nominal
+              </span>
+              <Button variant="destructive" size="sm" onClick={() => setSos("confirm")} className="font-bold text-xs">
+                <Phone className="size-3.5 mr-1" /> SOS Emergency
+              </Button>
+            </div>
+          </div>
+
+          <div className="md:grid md:grid-cols-[1.1fr_0.9fr] md:gap-8 md:items-start">
+            {/* Left Column */}
+            <div className="space-y-6">
+              <div className="flex flex-col items-center py-6 md:py-8 text-center rounded-2xl border bg-surface p-6 shadow-soft">
+                <div className="grid size-20 md:size-24 place-items-center rounded-full bg-success-soft shadow-inner">
+                  <ShieldCheck className="size-10 md:size-12 text-success" />
+                </div>
+                <p className="mt-4 text-xs font-black text-success uppercase tracking-wider">
+                  JOURNEY NORMAL · STATE MONITORING ACTIVE
+                </p>
+                <h2 className="mt-1 text-2xl md:text-3xl font-black">Everything looks good</h2>
+                <p className="mt-2 text-sm text-muted-foreground max-w-md">
+                  Monitoring your transit to <span className="font-bold text-foreground">{toLoc.name}</span>. Real-time corridor telemetry is active with zero anomalies.
+                </p>
+                <div className="mt-6 grid grid-cols-3 divide-x border-t pt-4 w-full text-center">
+                  <Metric value={tripStats.distanceKm} label="Total Route" />
+                  <Metric value={tripStats.durationMins} label="Est. Duration" />
+                  <Metric value="0" label="Active Anomalies" />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <h3 className="text-xs font-black text-muted-foreground uppercase tracking-wider mb-3">
+                  LIVE SAFETY CHECKS
+                </h3>
+                <div className="divide-y">
+                  {checks.map(({ icon: Icon, title, sub }) => (
+                    <div key={title} className="flex items-center gap-3 py-3.5 first:pt-1 last:pb-1">
+                      <div className="grid size-10 place-items-center rounded-xl bg-muted shrink-0">
+                        <Icon className="size-4 text-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate">{title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{sub}</p>
+                      </div>
+                      <Check className="size-5 text-success shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-primary/20 bg-primary-soft/50 p-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black uppercase text-primary">KERALA TRANSIT POLICE & KSRTC 24x7</p>
+                  <span className="text-[10px] font-bold text-primary bg-primary-foreground/20 px-2 py-0.5 rounded-full">Emergency Network</span>
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                  Direct silent escalation connects to Kerala Police (112) and KSRTC Depot Control Cell upon 30-second missed passenger response.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" className="text-xs font-bold" onClick={() => setSos("confirm")}>
+                    <Phone className="size-3 mr-1 text-danger" /> Test SOS Escalation
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs font-bold" onClick={() => go("active")}>
+                    <Navigation className="size-3 mr-1 text-primary" /> Return to Map
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6 mt-6 md:mt-0">
+              <AnomalyEngineWidget signals={anomalySignals} onToggleSignal={toggleAnomalySignal} interactive />
+
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-black text-muted-foreground uppercase tracking-wider">
+                    CURRENT CORRIDOR MAP
+                  </h3>
+                  <span className="text-[11px] font-bold text-primary">{fromLoc.name} → {toLoc.name}</span>
+                </div>
+                <div className="overflow-hidden rounded-xl border h-[240px]">
+                  <NightwatchLeafletMap compact dark={dark} from={fromLoc} to={toLoc} className="h-full w-full" />
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>GPS Precision: High Accuracy</span>
+                  <span className="text-success font-semibold">● Safe Corridor Active</span>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <h3 className="text-xs font-black text-muted-foreground uppercase tracking-wider mb-2">
+                  ESCALATION PROTOCOL LADDER
+                </h3>
+                <div className="space-y-3 text-xs mt-3">
+                  <div className="flex items-start gap-2.5">
+                    <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[10px] font-bold text-muted-foreground">L1</span>
+                    <div>
+                      <p className="font-bold text-foreground">Subtle In-App Prompt</p>
+                      <p className="text-muted-foreground text-[11px]">Non-intrusive banner when route deviates &gt; 250m or stop &gt; 5 min.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="rounded-md bg-warning-soft px-1.5 py-0.5 font-mono text-[10px] font-bold text-warning-foreground">L2</span>
+                    <div>
+                      <p className="font-bold text-foreground">30-Second Audio & Haptic Check</p>
+                      <p className="text-muted-foreground text-[11px]">Automated countdown requiring passenger confirmation before alerting contacts.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="rounded-md bg-danger-soft px-1.5 py-0.5 font-mono text-[10px] font-bold text-danger">L3</span>
+                    <div>
+                      <p className="font-bold text-foreground">High-Priority Alert to Mom & Control Room</p>
+                      <p className="text-muted-foreground text-[11px]">Automated SMS dispatch with real-time GPS telemetry link.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     if (view === "deviation" || view === "stopped") { const stopped = view === "stopped"; return <div className="w-full max-w-2xl mx-auto"><Header title={stopped ? "Unexpected stop" : "Route change detected"} back={() => go("active")}/><div className="px-5 pb-8"><div className="rounded-lg bg-warning-soft p-4"><div className="flex items-center gap-2 text-warning-foreground"><AlertTriangle className="size-5"/><span className="text-xs font-black">ATTENTION NEEDED (LEVEL 1)</span></div><h2 className="mt-3 text-xl font-black">{stopped ? "You've been stopped for 12 min" : "We noticed a route difference"}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{stopped ? `You haven't moved on the route to ${toLoc.name}. Let us know if everything is okay.` : "Your journey differs from the planned route. This can happen because of a detour or change of plans."}</p></div><div className="mt-4 overflow-hidden rounded-lg border"><NightwatchLeafletMap compact deviation={!stopped} dark={dark} from={fromLoc} to={toLoc}/></div><div className="mt-4"><AnomalyEngineWidget signals={anomalySignals} compact /></div><Button className="mt-5 h-12 w-full" onClick={() => go("confirmed")}><ShieldCheck/> I'm safe</Button><Button variant="outline" className="mt-3 h-12 w-full" onClick={() => go("active")}>{stopped ? "View journey" : "Check journey"}</Button></div></div>; }
     if (view === "check") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col items-center justify-center px-6 text-center"><div className="safety-pulse grid size-32 place-items-center rounded-full bg-primary-soft"><Shield className="size-14 text-primary"/></div><p className="mt-8 text-xs font-black text-primary uppercase">LEVEL 2 · AUTOMATED SAFETY CHECK</p><h1 className="mt-2 text-3xl font-black">Are you safe?</h1><p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">Multiple journey anomalies logged. Please confirm your safety before we alert Mom.</p><div className="my-6 font-mono text-4xl font-bold text-primary animate-pulse">00:30</div><div className="mb-6 w-full max-w-sm"><AnomalyEngineWidget signals={anomalySignals} compact /></div><Button className="h-12 w-full max-w-sm" onClick={() => go("confirmed")}><ShieldCheck/> Yes, I'm safe</Button><Button variant="outline" className="mt-3 h-12 w-full max-w-sm text-danger" onClick={() => setSos("confirm")}><Phone/> Get emergency help</Button></div>;
     if (view === "confirmed") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col items-center justify-center px-6 text-center"><div className="grid size-28 place-items-center rounded-full bg-success-soft"><Check className="size-14 text-success"/></div><h1 className="mt-8 text-3xl font-black">You're safe</h1><p className="mt-3 max-w-xs text-sm text-muted-foreground">Your check-in was recorded. Mom can see that everything is okay.</p><Button className="mt-10 h-12 w-full" onClick={() => go("active")}>Continue journey</Button></div>;
     if (view === "missed") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col px-6 py-12"><div className="grid size-16 place-items-center rounded-full bg-danger-soft"><AlertTriangle className="size-8 text-danger"/></div><p className="mt-8 text-xs font-black text-danger">LEVEL 3 ESCALATION · CHECK-IN MISSED</p><h1 className="mt-2 text-3xl font-black">Mom has been notified</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">30-second safety check expired without passenger response. High-priority alert dispatched to trusted contacts and transit safety cell.</p><div className="my-4"><AnomalyEngineWidget signals={anomalySignals} compact /></div><div className="mt-4 rounded-lg border bg-surface p-4"><p className="text-xs text-muted-foreground font-bold">Last known GPS location</p><p className="mt-1 font-extrabold text-foreground">Near {toLoc.name}</p><p className="mt-1 text-xs text-muted-foreground font-mono">Lat: {toLoc.coords[0].toFixed(4)}, Lon: {toLoc.coords[1].toFixed(4)} · 11:42 PM</p></div><div className="mt-auto pt-4"><Button className="h-12 w-full" onClick={() => go("confirmed")}>I'm safe now</Button><Button variant="outline" className="mt-3 h-12 w-full text-danger" onClick={() => setSos("confirm")}><Phone/> Contact KSRTC Emergency Cell (112)</Button></div></div>;
     if (view === "completed") return <div className="w-full max-w-2xl mx-auto min-h-[760px] px-5 py-10"><div className="flex flex-col items-center text-center"><div className="grid size-24 place-items-center rounded-full bg-success-soft"><Sparkles className="size-11 text-success"/></div><p className="mt-6 text-xs font-black text-success">ARRIVED SAFELY</p><h1 className="mt-2 text-3xl font-black">Journey complete</h1><p className="mt-2 text-sm text-muted-foreground">{toLoc.name} · {tripStats.eta}</p></div><div className="my-8 grid grid-cols-3 rounded-lg border bg-surface p-5 text-center shadow-soft"><Metric value={tripStats.distanceKm} label="Kilometres"/><Metric value={tripStats.durationMins} label="Minutes"/><Metric value="3/3" label="Checkpoints"/></div><div className="rounded-lg border bg-surface p-4"><Timeline/></div><Button className="mt-8 h-12 w-full" onClick={backHome}>Done</Button></div>;
     if (view === "contact") return <div className="min-h-[760px] bg-companion"><header className="flex items-center justify-between border-b bg-surface px-6 py-4"><div><p className="text-xs font-black text-primary">NIGHTWATCH</p><h1 className="font-extrabold">Trusted Contact</h1></div><div className="flex items-center gap-2 text-sm font-bold"><div className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary">M</div><span className="hidden sm:block">Mom's view</span></div></header><main className="mx-auto grid max-w-6xl gap-5 p-5 md:grid-cols-[1.1fr_.9fr]"><div className="overflow-hidden rounded-lg border bg-surface shadow-soft"><NightwatchLeafletMap dark={dark} from={fromLoc} to={toLoc} className="min-h-[460px] h-full"/></div><div className="space-y-4"><div className="rounded-lg border bg-surface p-5 shadow-soft"><div className="flex items-center gap-2 text-xs font-black"><StatusDot/> ALWIN IS ON TRACK</div><h2 className="mt-4 text-2xl font-black">Heading to {toLoc.name}</h2><p className="mt-1 text-sm text-muted-foreground">Updated just now · ETA {tripStats.eta}</p><div className="mt-5 grid grid-cols-3 border-t pt-5"><Metric value={tripStats.distanceKm} label="Total Distance"/><Metric value={tripStats.durationMins} label="Duration"/><Metric value="Active" label="Progress"/></div></div><div className="rounded-lg border bg-surface p-5"><h3 className="font-extrabold">Journey updates</h3><div className="mt-5"><Timeline/></div></div><div className="rounded-lg border border-warning/40 bg-warning-soft p-4"><p className="text-xs font-black">ATTENTION HISTORY</p><p className="mt-1 text-sm font-bold">Route change resolved at 11:28 PM</p><p className="text-xs text-muted-foreground">Alwin confirmed they were safe.</p></div></div></main></div>;
-    if (view === "notifications") { const notes = [["Journey started",`Mom is now watching your journey to ${toLoc.name}`,"11:06 PM",Navigation],["Route deviation","A different route was detected","11:26 PM",AlertTriangle],["Safety check confirmed","You checked in as safe","11:28 PM",ShieldCheck],["Journey completed",`You arrived at ${toLoc.name} safely`,"Yesterday",Check]] as const; return <div className="w-full max-w-2xl mx-auto"><Header title="Notifications" back={backHome}/><div className="space-y-3 px-5 pb-24">{notes.map(([title,copy,time,Icon]) => <div key={title} className="flex gap-3 rounded-lg border bg-surface p-4"><div className="grid size-10 shrink-0 place-items-center rounded-md bg-primary-soft"><Icon className="size-5 text-primary"/></div><div><div className="flex flex-wrap items-center gap-x-2"><p className="text-sm font-bold">{title}</p><span className="text-[10px] text-muted-foreground">{time}</span></div><p className="mt-1 text-xs text-muted-foreground">{copy}</p></div></div>)}</div></div>; }
-    if (view === "history") return <div className="w-full max-w-2xl mx-auto"><Header title="Journey history" back={backHome}/><div className="space-y-3 px-5 pb-24">{[["Marine Drive","Kakkanad","Yesterday · 11:06 PM","42 min"],["Fort Kochi","Edappally","Sep 17 · 10:32 PM","36 min"],["Vyttila","Kalamassery","Sep 12 · 9:48 PM","31 min"]].map(([from,to,date,time]) => <button key={date} onClick={() => go("details")} className="flex w-full items-center gap-3 rounded-lg border bg-surface p-4 text-left shadow-soft"><div className="grid size-11 shrink-0 place-items-center rounded-md bg-success-soft"><Check className="size-5 text-success"/></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{from} → {to}</p><p className="text-xs text-muted-foreground">{date} · {time}</p></div><ChevronRight className="size-4"/></button>)}</div></div>;
-    if (view === "details") return <div className="w-full max-w-2xl mx-auto"><Header title="Journey details" back={() => go("history")}/><div className="px-5 pb-10"><div className="overflow-hidden rounded-lg border"><NightwatchLeafletMap compact dark={dark} from={fromLoc} to={toLoc}/></div><div className="my-4 grid grid-cols-3 rounded-lg border bg-surface p-4 text-center"><Metric value={tripStats.distanceKm} label="Distance"/><Metric value={tripStats.durationMins} label="Duration"/><Metric value="Safe" label="Outcome"/></div><div className="rounded-lg border bg-surface p-5"><h2 className="mb-5 font-extrabold">Full timeline</h2><Timeline detailed/></div></div></div>;
-    if (view === "contacts") return <div className="w-full max-w-2xl mx-auto"><Header title="Trusted contacts" back={backHome} right={<Button aria-label="Add contact" size="icon" variant="ghost" onClick={() => setAddContact(true)}><Plus/></Button>}/><div className="px-5 pb-24"><div className="rounded-lg border bg-surface p-4 shadow-soft"><div className="flex items-center gap-3"><div className="grid size-12 place-items-center rounded-full bg-primary-soft text-lg font-black text-primary">M</div><div className="flex-1"><p className="font-bold">Mom</p><p className="text-xs text-muted-foreground">Primary · Connected</p></div><StatusDot/></div><div className="mt-4 grid grid-cols-2 gap-2 border-t pt-4"><Button variant="outline" size="sm"><Phone/> Call</Button><Button variant="outline" size="sm">Edit</Button></div></div><div className="mt-6 rounded-lg bg-muted p-4"><ShieldCheck className="size-5 text-success"/><p className="mt-2 text-sm font-bold">Who gets journey alerts?</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Trusted contacts receive starts, safety alerts, missed check-ins, and arrival updates.</p></div></div></div>;
-    if (view === "settings") return <div className="w-full max-w-2xl mx-auto"><Header title="Profile & settings" back={backHome}/><div className="px-5 pb-24"><div className="mb-6 flex items-center gap-4"><div className="grid size-16 place-items-center rounded-full bg-foreground text-xl font-black text-primary-foreground">A</div><div><p className="text-lg font-black">Alwin George</p><p className="text-xs text-muted-foreground">Nightwatch member</p></div></div>{[["Journey monitoring","Watch routes and movement",true],["Safety check timer","Ask when something changes",true],["Location privacy","Share only during journeys",true]].map(([title,copy,on]) => <div key={String(title)} className="flex items-center gap-3 border-b py-4"><div className="flex-1"><p className="text-sm font-bold">{title as string}</p><p className="text-xs text-muted-foreground">{copy as string}</p></div><Switch defaultChecked={on as boolean}/></div>)}<div className="flex items-center gap-3 border-b py-4"><div className="flex-1"><p className="text-sm font-bold">Dark appearance</p><p className="text-xs text-muted-foreground">Reduce brightness at night</p></div><Switch checked={dark} onCheckedChange={setDark}/></div><div className="mt-6 rounded-lg border bg-surface p-4"><p className="text-xs font-black text-primary">PRIVACY FIRST</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Mock prototype: no location or personal information leaves this device.</p></div></div></div>;
+    if (view === "notifications") {
+      const notes = [
+        { title: "Journey started", copy: `Mom is now watching your journey to ${toLoc.name}`, time: "11:06 PM", icon: Navigation, tag: "Milestone" },
+        { title: "Route deviation", copy: "A different route was detected · Level 1 notice", time: "11:26 PM", icon: AlertTriangle, tag: "Safety" },
+        { title: "Safety check confirmed", copy: "You checked in as safe · Escalation cancelled", time: "11:28 PM", icon: ShieldCheck, tag: "Check-in" },
+        { title: "Journey completed", copy: `You arrived at ${toLoc.name} safely`, time: "Yesterday", icon: Check, tag: "Milestone" },
+      ];
+
+      return (
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 md:pb-12">
+          {/* Mobile Header */}
+          <div className="md:hidden">
+            <Header title="Notifications" back={backHome} />
+          </div>
+
+          {/* Desktop Heading */}
+          <div className="hidden md:flex items-center justify-between pb-6 mb-6 border-b">
+            <div className="flex items-center gap-3">
+              <Button size="icon" variant="ghost" onClick={backHome}>
+                <ArrowLeft className="size-4" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-black">Safety Notifications & Logs</h1>
+                <p className="text-xs text-muted-foreground font-semibold">
+                  Real-time alerts, check-in records & telemetry broadcasts
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+              {notes.length} Notifications
+            </span>
+          </div>
+
+          <div className="md:grid md:grid-cols-[1.1fr_0.9fr] md:gap-8 md:items-start">
+            {/* Left Column: Notification Feed */}
+            <div className="space-y-3">
+              {notes.map(({ title, copy, time, icon: Icon, tag }) => (
+                <div key={title + time} className="flex gap-3.5 rounded-2xl border bg-surface p-4 shadow-soft">
+                  <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary-soft">
+                    <Icon className="size-5 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
+                      <p className="text-sm font-bold text-foreground">{title}</p>
+                      <span className="text-[11px] text-muted-foreground font-mono">{time}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{copy}</p>
+                    <span className="mt-2 inline-block rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                      {tag}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right Column: Alert Delivery Diagnostics */}
+            <div className="space-y-6 mt-6 md:mt-0">
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <h3 className="text-xs font-black text-muted-foreground uppercase tracking-wider mb-3">
+                  ALERT DELIVERY CHANNELS
+                </h3>
+                <div className="space-y-3 text-xs">
+                  <div className="flex items-center justify-between border-b pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-success animate-pulse" />
+                      <span className="font-bold">In-App Push Channel</span>
+                    </div>
+                    <span className="text-success font-semibold">Active</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-success" />
+                      <span className="font-bold">SMS Telemetry Fallback</span>
+                    </div>
+                    <span className="text-success font-semibold">Ready</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-success" />
+                      <span className="font-bold">Mom's Web Companion Link</span>
+                    </div>
+                    <span className="text-success font-semibold">Synced</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (view === "history") {
+      const activePastJourney = pastJourneys[selectedHistoryIndex] || pastJourneys[0];
+      return (
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 md:pb-12">
+          {/* Mobile Header */}
+          <div className="md:hidden">
+            <Header title="Journey history" back={backHome} />
+          </div>
+
+          {/* Desktop Heading */}
+          <div className="hidden md:flex items-center justify-between pb-6 mb-6 border-b">
+            <div className="flex items-center gap-3">
+              <Button size="icon" variant="ghost" onClick={backHome}>
+                <ArrowLeft className="size-4" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-black">Journey History & Safety Logs</h1>
+                <p className="text-xs text-muted-foreground font-semibold">
+                  Verified audit trail of completed late-night journeys across Kerala
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+              {pastJourneys.length} Completed Trips Logged
+            </span>
+          </div>
+
+          <div className="md:grid md:grid-cols-[400px_1fr] lg:grid-cols-[440px_1fr] md:gap-8 md:items-start">
+            {/* Left Column: List of Journeys */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-black text-muted-foreground uppercase tracking-wider">PAST JOURNEYS</span>
+                <span className="text-[11px] text-primary font-bold">100% Safe Outcomes</span>
+              </div>
+              {pastJourneys.map((j, idx) => {
+                const isSelected = selectedHistoryIndex === idx;
+                return (
+                  <button
+                    key={j.date}
+                    onClick={() => {
+                      setSelectedHistoryIndex(idx);
+                      if (typeof window !== "undefined" && window.innerWidth < 768) {
+                        go("details");
+                      }
+                    }}
+                    className={cn(
+                      "flex w-full items-center gap-3.5 rounded-2xl border p-4 text-left shadow-soft transition-all",
+                      isSelected ? "border-primary bg-primary-soft/40 shadow-glow" : "bg-surface hover:border-primary/40 hover:bg-muted/30"
+                    )}
+                  >
+                    <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-success-soft">
+                      <Check className="size-5 text-success" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold">{j.from} → {j.to}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{j.date} · {j.duration}</p>
+                      <div className="mt-1 flex items-center gap-2 text-[11px] text-success font-semibold">
+                        <span>● {j.status}</span>
+                        <span className="text-muted-foreground font-normal">({j.distance})</span>
+                      </div>
+                    </div>
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right Column (Desktop Only): Selected Journey Deep Dive */}
+            <div className="hidden md:block space-y-6">
+              <div className="rounded-2xl border bg-surface p-6 shadow-soft space-y-5">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div>
+                    <span className="text-xs font-black text-success uppercase tracking-wider">VERIFIED TRIP RECORD</span>
+                    <h2 className="text-xl font-black mt-0.5">{activePastJourney.from} → {activePastJourney.to}</h2>
+                    <p className="text-xs text-muted-foreground">{activePastJourney.date} · Night Highway Transit</p>
+                  </div>
+                  <span className="rounded-full bg-success/15 text-success font-bold px-3 py-1 text-xs">
+                    ✓ Arrived Safely
+                  </span>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border h-[280px]">
+                  <NightwatchLeafletMap
+                    compact
+                    dark={dark}
+                    from={activePastJourney.fromPoint}
+                    to={activePastJourney.toPoint}
+                    className="h-full w-full"
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 divide-x border-t pt-4 text-center">
+                  <Metric value={activePastJourney.distance} label="Total Distance" />
+                  <Metric value={activePastJourney.duration} label="Travel Duration" />
+                  <Metric value={activePastJourney.checkpoints} label="Checkpoints" />
+                  <Metric value="0" label="Deviations" />
+                </div>
+
+                <div className="border-t pt-4">
+                  <h3 className="font-extrabold text-sm mb-4">Journey Checkpoint Timeline</h3>
+                  <Timeline detailed />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (view === "details") {
+      const activePastJourney = pastJourneys[selectedHistoryIndex] || pastJourneys[0];
+      return (
+        <div className="w-full max-w-2xl mx-auto">
+          <Header title="Journey details" back={() => go("history")} />
+          <div className="px-5 pb-10 space-y-4">
+            <div className="overflow-hidden rounded-xl border">
+              <NightwatchLeafletMap
+                compact
+                dark={dark}
+                from={activePastJourney.fromPoint}
+                to={activePastJourney.toPoint}
+              />
+            </div>
+            <div className="grid grid-cols-3 rounded-xl border bg-surface p-4 text-center shadow-soft">
+              <Metric value={activePastJourney.distance} label="Distance" />
+              <Metric value={activePastJourney.duration} label="Duration" />
+              <Metric value="Safe" label="Outcome" />
+            </div>
+            <div className="rounded-xl border bg-surface p-5 shadow-soft">
+              <h2 className="mb-4 font-extrabold text-sm">Full Checkpoint Timeline</h2>
+              <Timeline detailed />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (view === "contacts") {
+      return (
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 md:pb-12">
+          {/* Mobile Header */}
+          <div className="md:hidden">
+            <Header
+              title="Trusted contacts"
+              back={backHome}
+              right={
+                <Button aria-label="Add contact" size="icon" variant="ghost" onClick={() => setAddContact(true)}>
+                  <Plus />
+                </Button>
+              }
+            />
+          </div>
+
+          {/* Desktop Heading */}
+          <div className="hidden md:flex items-center justify-between pb-6 mb-6 border-b">
+            <div className="flex items-center gap-3">
+              <Button size="icon" variant="ghost" onClick={backHome}>
+                <ArrowLeft className="size-4" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-black">Trusted Safety Circle</h1>
+                <p className="text-xs text-muted-foreground font-semibold">
+                  Emergency contacts, live journey sharing & automated escalation recipients
+                </p>
+              </div>
+            </div>
+            <Button size="sm" className="font-bold text-xs" onClick={() => setAddContact(true)}>
+              <Plus className="size-3.5 mr-1" /> Add Trusted Contact
+            </Button>
+          </div>
+
+          <div className="md:grid md:grid-cols-[1.1fr_0.9fr] md:gap-8 md:items-start">
+            {/* Left Column: Contacts List */}
+            <div className="space-y-5">
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-primary uppercase tracking-wider">PRIMARY COMPANION</span>
+                  <span className="text-xs text-success font-bold flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-success animate-pulse" /> Live Connected
+                  </span>
+                </div>
+                <div className="mt-4 flex items-center gap-4">
+                  <div className="grid size-14 place-items-center rounded-2xl bg-primary-soft text-xl font-black text-primary">
+                    M
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-black truncate">Mom</p>
+                    <p className="text-xs text-muted-foreground font-mono">+91 98765 43210</p>
+                    <p className="text-xs text-primary font-semibold mt-0.5">Receives start alerts, live GPS link & SOS</p>
+                  </div>
+                </div>
+                <div className="mt-5 grid grid-cols-2 gap-3 border-t pt-4">
+                  <Button variant="outline" size="sm" className="font-bold text-xs">
+                    <Phone className="size-3.5 mr-1" /> Call Mom
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="font-bold text-xs"
+                    onClick={() => go("contact")}
+                  >
+                    <Users className="size-3.5 mr-1 text-primary" /> View Mom's Screen
+                  </Button>
+                </div>
+              </div>
+
+              {/* Secondary Contact */}
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-muted-foreground uppercase tracking-wider">SECONDARY BACKUP</span>
+                  <span className="text-xs text-muted-foreground font-semibold">Standby</span>
+                </div>
+                <div className="mt-4 flex items-center gap-4">
+                  <div className="grid size-14 place-items-center rounded-2xl bg-muted text-xl font-black text-foreground">
+                    D
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-black truncate">Dad</p>
+                    <p className="text-xs text-muted-foreground font-mono">+91 94471 23456</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Alerted on Level 3 emergency escalation</p>
+                  </div>
+                </div>
+                <div className="mt-5 grid grid-cols-2 gap-3 border-t pt-4">
+                  <Button variant="outline" size="sm" className="font-bold text-xs">
+                    <Phone className="size-3.5 mr-1" /> Call Dad
+                  </Button>
+                  <Button variant="outline" size="sm" className="font-bold text-xs" onClick={() => setAddContact(true)}>
+                    Edit Permissions
+                  </Button>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full h-12 border-dashed font-bold text-xs"
+                onClick={() => setAddContact(true)}
+              >
+                <Plus className="size-4 mr-1.5" /> Add Another Trusted Person
+              </Button>
+            </div>
+
+            {/* Right Column: Protocols & Directory */}
+            <div className="space-y-6 mt-6 md:mt-0">
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <div className="flex items-center gap-2 text-success font-black text-xs uppercase tracking-wider">
+                  <ShieldCheck className="size-4" /> AUTOMATED ALERT ESCALATION
+                </div>
+                <h3 className="font-black text-base mt-2">What do trusted contacts see?</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  Trusted contacts receive lightweight notifications via secure web link without needing to install an app.
+                </p>
+                <div className="mt-4 space-y-2.5 text-xs">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Check className="size-4 text-success shrink-0" />
+                    <span>Instant notification when late-night transit begins</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Check className="size-4 text-success shrink-0" />
+                    <span>Live satellite location tracking with battery & signal status</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Check className="size-4 text-success shrink-0" />
+                    <span>Immediate high-priority alert if safety check is unanswered</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Check className="size-4 text-success shrink-0" />
+                    <span>Confirmation notification once safely arrived at destination</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kerala Emergency Directory */}
+              <div className="rounded-2xl border border-primary/20 bg-primary-soft/50 p-5 shadow-soft">
+                <p className="text-xs font-black uppercase text-primary tracking-wider">
+                  KERALA EMERGENCY HELPLINES DIRECTORY
+                </p>
+                <div className="mt-3 divide-y divide-primary/10 text-xs">
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-bold text-foreground">Kerala Police Emergency</span>
+                    <span className="font-mono font-bold text-primary">112</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-bold text-foreground">Women Helpline "Mitra"</span>
+                    <span className="font-mono font-bold text-primary">181 / 1091</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-bold text-foreground">Pink Police Patrol (Kerala)</span>
+                    <span className="font-mono font-bold text-primary">1515</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-bold text-foreground">KSRTC 24x7 Control Room</span>
+                    <span className="font-mono font-bold text-primary">0471-2463799</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (view === "settings") {
+      return (
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 md:pb-12">
+          {/* Mobile Header */}
+          <div className="md:hidden">
+            <Header title="Profile & settings" back={backHome} />
+          </div>
+
+          {/* Desktop Heading */}
+          <div className="hidden md:flex items-center justify-between pb-6 mb-6 border-b">
+            <div className="flex items-center gap-3">
+              <Button size="icon" variant="ghost" onClick={backHome}>
+                <ArrowLeft className="size-4" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-black">Profile & System Configuration</h1>
+                <p className="text-xs text-muted-foreground font-semibold">
+                  Manage passenger safety preferences, telemetry sensitivity & appearance
+                </p>
+              </div>
+            </div>
+            <span className="rounded-full bg-primary-soft text-primary font-extrabold px-3 py-1 text-xs">
+              NIGHTWATCH v2.4 (Kerala Edition)
+            </span>
+          </div>
+
+          <div className="md:grid md:grid-cols-[1.1fr_0.9fr] md:gap-8 md:items-start">
+            {/* Left Column */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 rounded-2xl border bg-surface p-5 shadow-soft">
+                <div className="grid size-16 place-items-center rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-glow">
+                  A
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-black truncate">Alwin George</p>
+                    <span className="rounded-full bg-success/15 text-success text-[10px] font-extrabold px-2 py-0.5">Verified</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium">KSRTC Night Transit Safety Member</p>
+                  <p className="text-[11px] font-mono text-muted-foreground mt-0.5">ID: NW-KL-2026-4821</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <h3 className="text-xs font-black text-muted-foreground uppercase tracking-wider mb-2">
+                  MONITORING PREFERENCES
+                </h3>
+                <div className="divide-y">
+                  {[
+                    ["Journey monitoring", "Watch routes and movement via satellite GPS", true],
+                    ["Safety check timer", "Audio-haptic chime when unexpected halt or detour occurs", true],
+                    ["Location privacy", "Share real-time telemetry only during active journeys", true],
+                  ].map(([title, copy, on]) => (
+                    <div key={String(title)} className="flex items-center justify-between py-4 first:pt-2">
+                      <div className="flex-1 pr-4">
+                        <p className="text-sm font-bold">{title as string}</p>
+                        <p className="text-xs text-muted-foreground">{copy as string}</p>
+                      </div>
+                      <Switch defaultChecked={on as boolean} />
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between py-4 last:pb-2">
+                    <div className="flex-1 pr-4">
+                      <p className="text-sm font-bold">Dark appearance</p>
+                      <p className="text-xs text-muted-foreground">Reduce screen glare during late-night travel</p>
+                    </div>
+                    <Switch checked={dark} onCheckedChange={setDark} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-primary/20 bg-primary-soft/50 p-5 shadow-soft">
+                <p className="text-xs font-black text-primary uppercase">PRIVACY-FIRST ZERO CLOUD LOGGING</p>
+                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                  Nightwatch processes GPS telemetry on-device using local deviation algorithms. No tracking coordinates are persistently stored on remote servers.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Dataset & Hackathon Diagnostics */}
+            <div className="space-y-6 mt-6 md:mt-0">
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-black text-muted-foreground uppercase tracking-wider">
+                    KERALA TRANSIT DATASET
+                  </h3>
+                  <span className="text-[11px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
+                    Active & Loaded
+                  </span>
+                </div>
+                <div className="space-y-3 text-xs">
+                  <div className="flex items-center justify-between border-b pb-2.5">
+                    <span className="text-muted-foreground">Covered Bus Stands</span>
+                    <span className="font-extrabold text-foreground">{KERALA_BUS_STANDS.length} Stations</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b pb-2.5">
+                    <span className="text-muted-foreground">Districts Covered</span>
+                    <span className="font-extrabold text-foreground">All 14 Kerala Districts</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b pb-2.5">
+                    <span className="text-muted-foreground">Depot Network</span>
+                    <span className="font-extrabold text-foreground">KSRTC Central, SWIFT & Municipal</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-muted-foreground">Offline Transit Geofences</span>
+                    <span className="font-extrabold text-success">Enabled</span>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-4 text-xs font-bold"
+                  onClick={() => setDatasetOpen(true)}
+                >
+                  <Database className="size-3.5 mr-1.5 text-primary" /> Browse Kerala Dataset Explorer
+                </Button>
+              </div>
+
+              <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+                <h3 className="text-xs font-black text-muted-foreground uppercase tracking-wider mb-2">
+                  HACKATHON JURY SIMULATION TOOLS
+                </h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Quick access to multi-screen demonstration and simulated late-night incident states.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs font-bold"
+                    onClick={() => setIsSplitView(true)}
+                  >
+                    <Columns2 className="size-3.5 mr-1.5 text-primary" /> Dual Screen
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs font-bold"
+                    onClick={() => go("deviation")}
+                  >
+                    <AlertTriangle className="size-3.5 mr-1.5 text-warning" /> Test Deviation
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     const emptyConfig: Record<"empty"|"offline"|"location", [string,string,typeof Bell]> = { empty:["No active journey","Start a journey when you're ready. Nightwatch will appear here.",RouteIcon], offline:["You're offline","Journey monitoring will resume when your connection returns.",AlertTriangle], location:["Location unavailable","Enable location access to preview your position and route.",LocateFixed]};
     if (view === "empty" || view === "offline" || view === "location") { const [title,copy,Icon] = emptyConfig[view]; return <div className="w-full max-w-2xl mx-auto"><Header title="System states" back={backHome}/><div className="flex min-h-[620px] flex-col items-center justify-center px-8 text-center"><div className="grid size-20 place-items-center rounded-full bg-muted"><Icon className="size-8 text-muted-foreground"/></div><h1 className="mt-6 text-2xl font-black">{title}</h1><p className="mt-2 max-w-xs text-sm text-muted-foreground">{copy}</p><Button className="mt-8" onClick={() => view === "empty" ? go("offline") : view === "offline" ? go("location") : backHome()}>{view === "location" ? "Back home" : "View next state"}</Button></div></div> }
     return null;
