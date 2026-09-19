@@ -181,10 +181,9 @@
   }
 }
 
-.nightwatch-root { min-height: 100vh; background: var(--color-background); color: var(--color-foreground); }
+.nightwatch-root { min-height: 100vh; background: var(--color-companion); color: var(--color-foreground); }
 .app-stage { min-height: 100vh; display: grid; place-items: center; }
-.full-stage, .contact-stage, .web-stage { display: block; width: 100%; min-height: 100vh; }
-.web-stage { padding: 0; }
+.full-stage, .contact-stage { display: block; }
 .app-viewport {
   position: relative;
   width: 100%;
@@ -193,14 +192,6 @@
   background: var(--color-background);
   display: flex;
   flex-direction: column;
-}
-.web-viewport {
-  width: 100%;
-  min-height: calc(100vh - 64px);
-  max-height: none;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
 }
 .device-stage { padding: 24px 16px 60px; }
 .device-frame {
