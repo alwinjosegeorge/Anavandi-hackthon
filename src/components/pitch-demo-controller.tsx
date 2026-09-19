@@ -138,12 +138,12 @@ export function PitchDemoController({
 }: PitchDemoControllerProps) {
   return (
     <>
-      {/* Floating Demo Trigger Badge */}
-      <div className="fixed bottom-5 right-5 z-[100] flex items-center gap-2">
+      {/* Floating Demo Trigger Badge (Desktop/Laptop only, completely hidden on phones) */}
+      <div className="fixed bottom-5 right-5 z-[100] hidden md:flex items-center gap-2">
         <button
           onClick={onToggleSplitView}
           className={cn(
-            "hidden md:flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-black shadow-lift transition-all",
+            "flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-black shadow-lift transition-all",
             isSplitView
               ? "bg-primary text-primary-foreground ring-2 ring-primary/50"
               : "border bg-surface hover:bg-muted text-foreground"
@@ -156,7 +156,7 @@ export function PitchDemoController({
 
         <button
           onClick={onOpenDataset}
-          className="hidden md:flex items-center gap-2 rounded-full border bg-surface px-4 py-2.5 text-xs font-black text-foreground shadow-lift hover:bg-muted transition-all"
+          className="flex items-center gap-2 rounded-full border bg-surface px-4 py-2.5 text-xs font-black text-foreground shadow-lift hover:bg-muted transition-all"
         >
           <Database className="size-4 text-primary" />
           <span>Kerala Dataset</span>
@@ -171,9 +171,9 @@ export function PitchDemoController({
         </button>
       </div>
 
-      {/* Expanded Pitch Control Drawer */}
+      {/* Expanded Pitch Control Drawer (Desktop/Laptop only) */}
       {isOpen && (
-        <div className="fixed inset-x-3 bottom-20 md:bottom-20 z-[110] mx-auto max-w-4xl rounded-2xl border bg-surface/98 p-5 shadow-lift backdrop-blur-md animate-in slide-in-from-bottom-5">
+        <div className="fixed inset-x-3 bottom-20 z-[110] mx-auto max-w-4xl rounded-2xl border bg-surface/98 p-5 shadow-lift backdrop-blur-md animate-in slide-in-from-bottom-5 hidden md:block">
           <div className="flex items-center justify-between border-b pb-3">
             <div>
               <div className="flex items-center gap-2">
