@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -354,12 +354,26 @@ export const DISTRICTS = [
 ];
 
 export function NightwatchApp() {
-  const [view, setView] = useState<View>("splash");
+  const [view, setView] = useState<View>(() => {
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      return "home";
+    }
+    return "splash";
+  });
   const [onboard, setOnboard] = useState(0);
   const [demoOpen, setDemoOpen] = useState(false);
   const [sos, setSos] = useState<"closed" | "confirm" | "sent">("closed");
   const [addContact, setAddContact] = useState(false);
   const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    // When visiting on laptop/desktop, land directly on the rich website view
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      if (view === "splash" || view === "onboarding") {
+        setView("home");
+      }
+    }
+  }, []);
 
   // Dynamic Departure and Destination states (Default: Thampanoor KSRTC Central -> Vyttila Mobility Hub)
   const [fromLoc, setFromLoc] = useState<LocationPoint>(KERALA_BUS_STANDS[0]);
@@ -446,17 +460,44 @@ export function NightwatchApp() {
   const content = (() => {
     if (view === "splash") {
       return (
-        <div className="relative flex min-h-[calc(100vh-80px)] w-full flex-col items-center justify-center bg-background px-8 text-foreground overflow-hidden">
+        <div className="relative flex min-h-[calc(100vh-80px)] w-full flex-col items-center justify-center bg-background px-6 lg:px-8 text-foreground overflow-hidden">
           <div className="absolute top-1/4 size-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col items-center text-center max-w-sm w-full mx-auto">
+          
+          {/* Mobile Phone App Splash View */}
+          <div className="relative z-10 flex flex-col items-center text-center max-w-sm w-full mx-auto md:hidden">
             <div className="mb-6 grid size-24 place-items-center rounded-3xl bg-primary text-primary-foreground shadow-glow animate-in zoom-in-95 duration-500">
               <ShieldCheck className="size-12" />
             </div>
-            <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-foreground">NIGHTWATCH</h1>
+            <h1 className="text-3xl font-black tracking-tight text-foreground">NIGHTWATCH</h1>
             <p className="mt-2 text-sm text-muted-foreground font-medium">Your journey. Watched over.</p>
             <Button className="mt-10 h-12 w-full max-w-xs font-bold shadow-soft" onClick={() => setView("onboarding")}>
               Begin safely <ChevronRight className="size-4 ml-1" />
             </Button>
+          </div>
+
+          {/* Desktop Laptop Web Landing View */}
+          <div className="hidden md:flex relative z-10 flex-col items-center text-center max-w-2xl w-full mx-auto py-12 animate-in fade-in-50 duration-500">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary-soft/80 px-4 py-1.5 text-xs font-black text-primary">
+              <span className="size-2 rounded-full bg-success animate-pulse" />
+              KERALA TRANSIT SAFETY NETWORK · ആനവണ്ടി
+            </div>
+            <div className="mb-6 grid size-20 place-items-center rounded-3xl bg-primary text-primary-foreground shadow-glow">
+              <ShieldCheck className="size-10" />
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-foreground">
+              Nightwatch Kerala Safety Web
+            </h1>
+            <p className="mt-3 text-base text-muted-foreground max-w-lg leading-relaxed font-medium">
+              Real-time night transit monitoring, satellite highway tracking, and instant safety deviation alerts covering all 14 Kerala districts.
+            </p>
+            <div className="mt-8 flex items-center gap-4">
+              <Button size="lg" className="h-12 px-8 font-extrabold shadow-soft" onClick={() => setView("home")}>
+                Open Web Dashboard <ChevronRight className="size-4 ml-2" />
+              </Button>
+              <Button size="lg" variant="outline" className="h-12 px-6 font-bold" onClick={() => setView("plan")}>
+                <RouteIcon className="size-4 mr-2" /> Plan Route
+              </Button>
+            </div>
           </div>
         </div>
       );
@@ -633,6 +674,34 @@ export function NightwatchApp() {
             </div>
           </div>
         </div>
+
+        {/* Desktop Website Footer */}
+        <footer className="hidden md:block border-t bg-surface/50 mt-12 pt-8 pb-4 text-xs text-muted-foreground">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground font-black text-xs">
+                NW
+              </div>
+              <div>
+                <p className="font-extrabold text-foreground text-sm">NIGHTWATCH KERALA WEB</p>
+                <p className="text-[11px]">Kerala State Transit Safety Network (ആനവണ്ടി)</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-5 font-semibold">
+              <button onClick={() => go("plan")} className="hover:text-primary transition-colors">Plan Route</button>
+              <button onClick={() => go("active")} className="hover:text-primary transition-colors">Live Tracking</button>
+              <button onClick={() => go("safety")} className="hover:text-primary transition-colors">Safety Corridor</button>
+              <button onClick={() => go("history")} className="hover:text-primary transition-colors">Recent Journeys</button>
+              <button onClick={() => go("contacts")} className="hover:text-primary transition-colors">Emergency Contacts</button>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="rounded-full bg-success/15 text-success font-bold px-2.5 py-1 text-[11px] flex items-center gap-1.5">
+                <span className="size-1.5 rounded-full bg-success animate-pulse" /> Police 112 Active
+              </span>
+              <span className="text-[11px] font-medium">KSRTC: 0471-2463799</span>
+            </div>
+          </div>
+        </footer>
       </div>
     );
     if (view === "plan") return (
