@@ -110,9 +110,22 @@ export function NightwatchApp() {
   const go = (next: View) => { setView(next); setDemoOpen(false); if (next === "active" && demoViews.find((item) => item.label === "SOS" && item.view === next)) setSos("closed"); };
   const backHome = () => setView("home");
   const nav = [{ label: "Home", icon: Home, view: "home" as View }, { label: "History", icon: History, view: "history" as View }, { label: "Contacts", icon: Users, view: "contacts" as View }, { label: "Settings", icon: Settings, view: "settings" as View }];
-
   const content = (() => {
-    if (view === "splash") return <div className="flex min-h-[760px] flex-col items-center justify-center bg-foreground px-8 text-primary-foreground"><div className="mb-6 grid size-24 place-items-center rounded-3xl bg-primary shadow-glow"><ShieldCheck className="size-12" /></div><h1 className="text-3xl font-black">NIGHTWATCH</h1><p className="mt-2 text-sm text-primary-foreground/70">Your journey. Watched over.</p><Button className="mt-16 h-12 w-full max-w-xs" onClick={() => setView("onboarding")}>Begin safely <ChevronRight /></Button></div>;
+    if (view === "splash") {
+      return (
+        <div className="relative flex min-h-[760px] h-full flex-col items-center justify-center bg-background px-8 text-foreground overflow-hidden">
+          <div className="absolute -top-24 size-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+          <div className="mb-6 grid size-24 place-items-center rounded-3xl bg-primary text-primary-foreground shadow-glow animate-in zoom-in-95 duration-500">
+            <ShieldCheck className="size-12" />
+          </div>
+          <h1 className="text-3xl font-black tracking-tight text-foreground">NIGHTWATCH</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Your journey. Watched over.</p>
+          <Button className="mt-14 h-12 w-full max-w-xs font-bold shadow-soft" onClick={() => setView("onboarding")}>
+            Begin safely <ChevronRight className="size-4 ml-1" />
+          </Button>
+        </div>
+      );
+    }
     if (view === "onboarding") {
       const slides: Array<{ title: string; copy: string; icon: LucideIcon }> = [
         { title: "Travel with confidence", copy: "Plan late-night journeys with a calm companion beside you.", icon: Navigation },
