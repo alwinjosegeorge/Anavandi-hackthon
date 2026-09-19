@@ -95,16 +95,37 @@ export function NightwatchLeafletMap({
   // Dynamic route points connecting Start -> intermediate waypoints -> End
   const routePoints: [number, number][] = React.useMemo(() => {
     if (!from && !to) return DEFAULT_ROUTE_POINTS;
-    // If customized points, build road path connecting them
+
+    // Check if both points are in local central Kochi area
+    const isLocalKochi =
+      Math.abs(startCoords[0] - 10.0) < 0.12 &&
+      Math.abs(startCoords[1] - 76.3) < 0.12 &&
+      Math.abs(endCoords[0] - 10.0) < 0.12 &&
+      Math.abs(endCoords[1] - 76.3) < 0.12;
+
+    if (isLocalKochi) {
+      const points: [number, number][] = [startCoords];
+      DEFAULT_ROUTE_POINTS.forEach((pt) => {
+        const isStartClose = Math.hypot(pt[0] - startCoords[0], pt[1] - startCoords[1]) < 0.005;
+        const isEndClose = Math.hypot(pt[0] - endCoords[0], pt[1] - endCoords[1]) < 0.005;
+        if (!isStartClose && !isEndClose) {
+          points.push(pt);
+        }
+      });
+      points.push(endCoords);
+      return points;
+    }
+
+    // Statewide Kerala highway route: create realistic transit waypoints
     const points: [number, number][] = [startCoords];
-    // Include intermediate corridor points if route spans Kochi central
-    DEFAULT_ROUTE_POINTS.forEach((pt) => {
-      const isStartClose = Math.hypot(pt[0] - startCoords[0], pt[1] - startCoords[1]) < 0.005;
-      const isEndClose = Math.hypot(pt[0] - endCoords[0], pt[1] - endCoords[1]) < 0.005;
-      if (!isStartClose && !isEndClose) {
-        points.push(pt);
-      }
-    });
+    const waypointsCount = 4;
+    for (let i = 1; i < waypointsCount; i++) {
+      const t = i / waypointsCount;
+      const curve = Math.sin(t * Math.PI) * 0.012 * (startCoords[0] > endCoords[0] ? -1 : 1);
+      const lat = startCoords[0] + (endCoords[0] - startCoords[0]) * t;
+      const lon = startCoords[1] + (endCoords[1] - startCoords[1]) * t + curve;
+      points.push([lat, lon]);
+    }
     points.push(endCoords);
     return points;
   }, [startCoords[0], startCoords[1], endCoords[0], endCoords[1]]);
