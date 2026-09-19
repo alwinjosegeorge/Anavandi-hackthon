@@ -92,23 +92,23 @@ function DesktopNavBar({
   ];
 
   return (
-    <header className="sticky top-0 z-50 h-16 w-full border-b bg-surface/95 px-6 lg:px-8 backdrop-blur shadow-sm hidden lg:flex items-center justify-between">
-      <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => go("home")}>
-        <div className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow">
-          <ShieldCheck className="size-6" />
+    <header className="sticky top-0 z-50 h-16 w-full border-b bg-surface/95 px-3 sm:px-6 lg:px-8 backdrop-blur shadow-sm hidden md:flex items-center justify-between">
+      <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => go("home")}>
+        <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow">
+          <ShieldCheck className="size-5 sm:size-6" />
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <span className="font-black text-lg tracking-tight">NIGHTWATCH</span>
-            <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-extrabold text-primary">
+          <div className="flex items-center gap-1.5">
+            <span className="font-black text-base sm:text-lg tracking-tight">NIGHTWATCH</span>
+            <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold text-primary">
               ആനവണ്ടി
             </span>
           </div>
-          <p className="text-[10px] text-muted-foreground font-semibold">Kerala Night Transit Safety</p>
+          <p className="text-[9px] sm:text-[10px] text-muted-foreground font-semibold">Kerala Night Transit Safety</p>
         </div>
       </div>
 
-      <nav className="flex items-center gap-1 xl:gap-2">
+      <nav className="flex items-center gap-0.5 xl:gap-1">
         {links.map(({ label, view: target, icon: Icon }) => {
           const isActive = view === target;
           return (
@@ -116,23 +116,23 @@ function DesktopNavBar({
               key={label}
               onClick={() => go(target)}
               className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition-all shrink-0",
+                "flex items-center gap-1 rounded-lg px-2 xl:px-3 py-1.5 text-xs font-bold transition-all shrink-0",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-soft"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <Icon className="size-4" />
+              <Icon className="size-3.5" />
               <span>{label}</span>
             </button>
           );
         })}
       </nav>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2 xl:gap-3 shrink-0">
         <button
           onClick={() => go("safety")}
-          className="flex items-center gap-1.5 rounded-full border bg-muted/60 px-3 py-1.5 text-xs font-bold hover:bg-muted transition-colors"
+          className="hidden sm:flex items-center gap-1.5 rounded-full border bg-muted/60 px-2.5 py-1.5 text-xs font-bold hover:bg-muted transition-colors"
         >
           <span className="size-2 rounded-full bg-success animate-pulse" />
           <span className="text-[11px] font-bold">Systems Ready</span>
@@ -141,17 +141,17 @@ function DesktopNavBar({
         <Button
           variant="destructive"
           size="sm"
-          className="font-extrabold text-xs shadow-soft px-4"
+          className="font-extrabold text-xs shadow-soft px-3"
           onClick={() => setSos("confirm")}
         >
-          <Phone className="size-3.5 mr-1.5" /> SOS
+          <Phone className="size-3.5 mr-1" /> SOS
         </Button>
 
         <Button
           variant="outline"
           size="icon"
           onClick={() => setDark(!dark)}
-          className="size-9 rounded-lg"
+          className="size-8 sm:size-9 rounded-lg"
           title="Toggle Dark Mode"
         >
           {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
@@ -493,8 +493,8 @@ export function NightwatchApp() {
       );
     }
     if (view === "home") return (
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 lg:pb-12">
-        <div className="lg:grid lg:grid-cols-[440px_1fr] lg:gap-8 lg:items-start">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 md:pb-12">
+        <div className="md:grid md:grid-cols-[380px_1fr] lg:grid-cols-[440px_1fr] md:gap-6 lg:gap-8 md:items-start">
           {/* Left Column: Journey Controls & Status */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -600,7 +600,7 @@ export function NightwatchApp() {
           </div>
 
           {/* Right Column (Web View on desktop only): High-Res Kerala Satellite Map & Metrics */}
-          <div className="hidden lg:flex lg:flex-col lg:gap-5">
+          <div className="hidden md:flex md:flex-col md:gap-5">
             <div className="overflow-hidden rounded-2xl border bg-surface shadow-soft">
               <div className="flex items-center justify-between border-b px-5 py-3.5 bg-muted/30">
                 <div className="flex items-center gap-2">
@@ -636,14 +636,14 @@ export function NightwatchApp() {
       </div>
     );
     if (view === "plan") return (
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 lg:pb-12">
-        <div className="lg:hidden">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 md:pb-12">
+        <div className="md:hidden">
           <Header title="Plan journey" back={backHome} />
         </div>
-        <div className="lg:grid lg:grid-cols-[440px_1fr] lg:gap-8 lg:items-start">
+        <div className="md:grid md:grid-cols-[380px_1fr] lg:grid-cols-[440px_1fr] md:gap-6 lg:gap-8 md:items-start">
           {/* Left Column: Route Setup & Details */}
           <div className="space-y-5">
-            <div className="hidden lg:block">
+            <div className="hidden md:block">
               <div className="flex items-center gap-2">
                 <Button size="icon" variant="ghost" onClick={backHome}>
                   <ArrowLeft className="size-4" />
@@ -705,7 +705,7 @@ export function NightwatchApp() {
             </div>
 
             {/* Mobile-only compact map preview */}
-            <div className="overflow-hidden rounded-xl border bg-surface shadow-soft lg:hidden">
+            <div className="overflow-hidden rounded-xl border bg-surface shadow-soft md:hidden">
               <NightwatchLeafletMap compact dark={dark} from={fromLoc} to={toLoc} />
               <div className="p-4">
                 <div className="grid grid-cols-3 text-center">
@@ -730,7 +730,7 @@ export function NightwatchApp() {
           </div>
 
           {/* Right Column (Web view on desktop only): Full Map View with Checkpoints */}
-          <div className="hidden lg:block sticky top-24">
+          <div className="hidden md:block sticky top-24">
             <div className="overflow-hidden rounded-2xl border bg-surface shadow-soft">
               <div className="flex items-center justify-between border-b px-5 py-3.5 bg-muted/30">
                 <div className="flex items-center gap-2">
@@ -764,7 +764,7 @@ export function NightwatchApp() {
     if (view === "active") return (
       <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Desktop View */}
-        <div className="hidden lg:grid lg:grid-cols-[1fr_420px] lg:gap-8 lg:h-[calc(100vh-140px)]">
+        <div className="hidden md:grid md:grid-cols-[1fr_360px] lg:grid-cols-[1fr_420px] md:gap-6 lg:gap-8 md:h-[calc(100vh-140px)]">
           <div className="overflow-hidden rounded-2xl border bg-surface shadow-soft h-full flex flex-col">
             <div className="flex items-center justify-between border-b px-5 py-3.5 bg-muted/30">
               <div className="flex items-center gap-2">
@@ -833,7 +833,7 @@ export function NightwatchApp() {
         </div>
 
         {/* Mobile View (Preserved exactly) */}
-        <div className="relative min-h-[760px] lg:hidden rounded-2xl overflow-hidden border">
+        <div className="relative min-h-[760px] md:hidden rounded-2xl overflow-hidden border">
           <NightwatchLeafletMap dark={dark} from={fromLoc} to={toLoc} className="min-h-[760px] h-[760px]" />
           <div className="absolute inset-x-4 top-4 rounded-lg bg-surface/95 p-4 shadow-lift backdrop-blur">
             <div className="flex items-center justify-between">
@@ -896,12 +896,12 @@ export function NightwatchApp() {
       />
       <div className={cn("app-stage web-stage", view === "contact" && "contact-stage")}>
         <div className="app-viewport web-viewport">
-          <div className={cn("app-scroll-body flex-1 w-full", showNav && "pb-24 lg:pb-8")}>
+          <div className={cn("app-scroll-body flex-1 w-full", showNav && "pb-24 md:pb-8")}>
             {content}
           </div>
           {showNav && (
             <nav
-              className="fixed bottom-0 inset-x-0 mx-auto max-w-lg w-full z-30 grid h-20 grid-cols-4 border-t bg-surface/95 pb-2 backdrop-blur shadow-soft lg:hidden"
+              className="fixed bottom-0 inset-x-0 mx-auto max-w-lg w-full z-30 grid h-20 grid-cols-4 border-t bg-surface/95 pb-2 backdrop-blur shadow-soft md:hidden"
             >
               {nav.map(({ label, icon: Icon, view: target }) => (
                 <button
