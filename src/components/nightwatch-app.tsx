@@ -29,12 +29,17 @@ import {
   Moon,
   Users,
   X,
+  Database,
+  Columns2,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { NightwatchLeafletMap, type LocationPoint } from "@/components/nightwatch-leaflet-map";
+import { AnomalyEngineWidget, type AnomalySignals, calculateAnomalyScore } from "@/components/safety-anomaly-engine";
+import { KeralaDatasetExplorer } from "@/components/kerala-dataset-explorer";
+import { PitchDemoController, HACKATHON_PITCH_STEPS, type PitchStep } from "@/components/pitch-demo-controller";
 
 type View =
   | "splash" | "onboarding" | "home" | "plan" | "active" | "safety" | "deviation"
@@ -74,12 +79,18 @@ function DesktopNavBar({
   dark,
   setDark,
   setSos,
+  onOpenDataset,
+  isSplitView,
+  onToggleSplitView,
 }: {
   view: View;
   go: (next: View) => void;
   dark: boolean;
   setDark: (d: boolean) => void;
   setSos: (s: "closed" | "confirm" | "sent") => void;
+  onOpenDataset: () => void;
+  isSplitView: boolean;
+  onToggleSplitView: () => void;
 }) {
   const links: { label: string; view: View; icon: LucideIcon }[] = [
     { label: "Home", view: "home", icon: Home },
@@ -129,7 +140,32 @@ function DesktopNavBar({
         })}
       </nav>
 
-      <div className="flex items-center gap-2 xl:gap-3 shrink-0">
+      <div className="flex items-center gap-2 xl:gap-2.5 shrink-0">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenDataset}
+          className="hidden lg:flex text-xs font-bold gap-1.5 h-8 border-primary/30 text-foreground hover:bg-primary-soft"
+          title="Inspect 60+ KSRTC bus stands across Kerala"
+        >
+          <Database className="size-3.5 text-primary" />
+          <span>KSRTC Dataset</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onToggleSplitView}
+          className={cn(
+            "hidden xl:flex text-xs font-bold gap-1.5 h-8",
+            isSplitView && "bg-primary text-primary-foreground border-primary"
+          )}
+          title="View Passenger and Trusted Contact screens side-by-side"
+        >
+          <Columns2 className="size-3.5" />
+          <span>{isSplitView ? "Exit Dual View" : "Dual Screen Demo"}</span>
+        </Button>
+
         <button
           onClick={() => go("safety")}
           className="hidden sm:flex items-center gap-1.5 rounded-full border bg-muted/60 px-2.5 py-1.5 text-xs font-bold hover:bg-muted transition-colors"
@@ -365,6 +401,24 @@ export function NightwatchApp() {
   const [sos, setSos] = useState<"closed" | "confirm" | "sent">("closed");
   const [addContact, setAddContact] = useState(false);
   const [dark, setDark] = useState(false);
+  const [datasetOpen, setDatasetOpen] = useState(false);
+  const [isSplitView, setIsSplitView] = useState(false);
+  const [anomalySignals, setAnomalySignals] = useState<AnomalySignals>({
+    routeDeviation: false,
+    unexpectedStop: false,
+    etaDelay: false,
+    lateNightHours: true,
+    unresponsiveTimer: false,
+  });
+
+  const toggleAnomalySignal = (key: keyof AnomalySignals) => {
+    setAnomalySignals((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSelectPitchStep = (step: PitchStep) => {
+    setView(step.view as View);
+    setAnomalySignals(step.signals);
+  };
 
   useEffect(() => {
     // When visiting on laptop/desktop, land directly on the rich website view
@@ -869,21 +923,49 @@ export function NightwatchApp() {
               </div>
             </div>
 
-            <div className="rounded-2xl border bg-surface p-6 shadow-soft space-y-4">
+            <AnomalyEngineWidget
+              signals={anomalySignals}
+              onToggleSignal={toggleAnomalySignal}
+              interactive
+            />
+
+            {/* Checkpoints Progress Card */}
+            <div className="rounded-2xl border bg-surface p-5 shadow-soft">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-black text-muted-foreground uppercase tracking-wider">JOURNEY CHECKPOINTS</p>
+                <span className="text-[11px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">2 of 3 Passed</span>
+              </div>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="flex items-center gap-2"><Check className="size-3.5 text-success" /> CP 1: Transit Hub Exit</span>
+                  <span className="font-mono text-[10px]">11:06 PM ✓</span>
+                </div>
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="flex items-center gap-2"><Check className="size-3.5 text-success" /> CP 2: Highway Bypass Corridor</span>
+                  <span className="font-mono text-[10px]">11:28 PM ✓</span>
+                </div>
+                <div className="flex items-center justify-between font-bold text-foreground">
+                  <span className="flex items-center gap-2"><span className="size-2 rounded-full bg-primary animate-pulse" /> CP 3: Terminal Approach</span>
+                  <span className="font-mono text-[10px] text-primary">In Transit</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-surface p-5 shadow-soft space-y-3">
               <div>
-                <p className="text-xs font-bold text-muted-foreground">START</p>
+                <p className="text-[11px] font-bold text-muted-foreground">START</p>
                 <p className="font-bold text-sm truncate">{fromLoc.name}</p>
               </div>
-              <div className="border-t pt-3">
-                <p className="text-xs font-bold text-muted-foreground">DESTINATION</p>
-                <p className="font-bold text-base truncate text-primary">{toLoc.name}</p>
+              <div className="border-t pt-2.5">
+                <p className="text-[11px] font-bold text-muted-foreground">DESTINATION</p>
+                <p className="font-bold text-sm truncate text-primary">{toLoc.name}</p>
               </div>
-              <div className="border-t pt-3">
+              <div className="border-t pt-2.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-muted-foreground">TRUSTED COMPANION</p>
-                  <span className="text-xs text-success font-semibold">Active & Watching</span>
+                  <p className="text-[11px] font-bold text-muted-foreground">TRUSTED COMPANION</p>
+                  <span className="text-[11px] text-success font-semibold">Active & Watching</span>
                 </div>
-                <p className="font-bold text-sm mt-1">Mom (+91 98765 43210)</p>
+                <p className="font-bold text-sm mt-0.5">Mom (+91 98765 43210)</p>
               </div>
             </div>
 
@@ -937,10 +1019,10 @@ export function NightwatchApp() {
       </div>
     );
     if (view === "safety") { const checks: Array<{ icon: LucideIcon; title: string; sub: string }> = [{icon:RouteIcon,title:"Route on track",sub:"No unexpected changes"},{icon:Navigation,title:"Movement normal",sub:"Steady movement detected"},{icon:Clock3,title:`ETA ${tripStats.eta}`,sub:`${tripStats.durationMins} remaining`},{icon:ContactRound,title:"Mom connected",sub:"Updated just now"}]; return <div className="w-full max-w-2xl mx-auto"><Header title="Journey safety" back={() => go("active")}/><div className="px-5 pb-24"><div className="flex flex-col items-center py-8 text-center"><div className="grid size-24 place-items-center rounded-full bg-success-soft"><ShieldCheck className="size-12 text-success"/></div><p className="mt-5 text-xs font-black text-success">JOURNEY NORMAL</p><h2 className="mt-2 text-2xl font-black">Everything looks good</h2><p className="mt-2 text-sm text-muted-foreground">Monitoring your trip to {toLoc.name}</p></div><div className="rounded-lg border bg-surface p-4 shadow-soft">{checks.map(({icon: Icon,title,sub}) => <div key={title} className="flex items-center gap-3 border-b py-3 last:border-0"><div className="grid size-9 place-items-center rounded-md bg-muted"><Icon className="size-4"/></div><div className="flex-1"><p className="text-sm font-bold">{title}</p><p className="text-xs text-muted-foreground">{sub}</p></div><Check className="size-4 text-success"/></div>)}</div><Button variant="outline" className="mt-5 h-11 w-full" onClick={() => setSos("confirm")}><Phone/> Emergency options</Button></div></div>; }
-    if (view === "deviation" || view === "stopped") { const stopped = view === "stopped"; return <div className="w-full max-w-2xl mx-auto"><Header title={stopped ? "Unexpected stop" : "Route change detected"} back={() => go("active")}/><div className="px-5 pb-8"><div className="rounded-lg bg-warning-soft p-4"><div className="flex items-center gap-2 text-warning-foreground"><AlertTriangle className="size-5"/><span className="text-xs font-black">ATTENTION NEEDED</span></div><h2 className="mt-3 text-xl font-black">{stopped ? "You've been stopped for 12 min" : "We noticed a route difference"}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{stopped ? `You haven't moved on the route to ${toLoc.name}. Let us know if everything is okay.` : "Your journey differs from the planned route. This can happen because of a detour or change of plans."}</p></div><div className="mt-4 overflow-hidden rounded-lg border"><NightwatchLeafletMap compact deviation={!stopped} dark={dark} from={fromLoc} to={toLoc}/></div><Button className="mt-5 h-12 w-full" onClick={() => go("confirmed")}><ShieldCheck/> I'm safe</Button><Button variant="outline" className="mt-3 h-12 w-full" onClick={() => go("active")}>{stopped ? "View journey" : "Check journey"}</Button></div></div>; }
-    if (view === "check") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col items-center justify-center px-6 text-center"><div className="safety-pulse grid size-32 place-items-center rounded-full bg-primary-soft"><Shield className="size-14 text-primary"/></div><p className="mt-10 text-xs font-black text-primary">SAFETY CHECK</p><h1 className="mt-2 text-3xl font-black">Are you safe?</h1><p className="mt-3 max-w-xs text-sm leading-6 text-muted-foreground">We noticed an unusual change. Please check in before we alert Mom.</p><div className="my-8 font-mono text-4xl font-bold">00:30</div><Button className="h-12 w-full" onClick={() => go("confirmed")}><ShieldCheck/> Yes, I'm safe</Button><Button variant="outline" className="mt-3 h-12 w-full text-danger" onClick={() => setSos("confirm")}><Phone/> Get help</Button></div>;
+    if (view === "deviation" || view === "stopped") { const stopped = view === "stopped"; return <div className="w-full max-w-2xl mx-auto"><Header title={stopped ? "Unexpected stop" : "Route change detected"} back={() => go("active")}/><div className="px-5 pb-8"><div className="rounded-lg bg-warning-soft p-4"><div className="flex items-center gap-2 text-warning-foreground"><AlertTriangle className="size-5"/><span className="text-xs font-black">ATTENTION NEEDED (LEVEL 1)</span></div><h2 className="mt-3 text-xl font-black">{stopped ? "You've been stopped for 12 min" : "We noticed a route difference"}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{stopped ? `You haven't moved on the route to ${toLoc.name}. Let us know if everything is okay.` : "Your journey differs from the planned route. This can happen because of a detour or change of plans."}</p></div><div className="mt-4 overflow-hidden rounded-lg border"><NightwatchLeafletMap compact deviation={!stopped} dark={dark} from={fromLoc} to={toLoc}/></div><div className="mt-4"><AnomalyEngineWidget signals={anomalySignals} compact /></div><Button className="mt-5 h-12 w-full" onClick={() => go("confirmed")}><ShieldCheck/> I'm safe</Button><Button variant="outline" className="mt-3 h-12 w-full" onClick={() => go("active")}>{stopped ? "View journey" : "Check journey"}</Button></div></div>; }
+    if (view === "check") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col items-center justify-center px-6 text-center"><div className="safety-pulse grid size-32 place-items-center rounded-full bg-primary-soft"><Shield className="size-14 text-primary"/></div><p className="mt-8 text-xs font-black text-primary uppercase">LEVEL 2 · AUTOMATED SAFETY CHECK</p><h1 className="mt-2 text-3xl font-black">Are you safe?</h1><p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">Multiple journey anomalies logged. Please confirm your safety before we alert Mom.</p><div className="my-6 font-mono text-4xl font-bold text-primary animate-pulse">00:30</div><div className="mb-6 w-full max-w-sm"><AnomalyEngineWidget signals={anomalySignals} compact /></div><Button className="h-12 w-full max-w-sm" onClick={() => go("confirmed")}><ShieldCheck/> Yes, I'm safe</Button><Button variant="outline" className="mt-3 h-12 w-full max-w-sm text-danger" onClick={() => setSos("confirm")}><Phone/> Get emergency help</Button></div>;
     if (view === "confirmed") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col items-center justify-center px-6 text-center"><div className="grid size-28 place-items-center rounded-full bg-success-soft"><Check className="size-14 text-success"/></div><h1 className="mt-8 text-3xl font-black">You're safe</h1><p className="mt-3 max-w-xs text-sm text-muted-foreground">Your check-in was recorded. Mom can see that everything is okay.</p><Button className="mt-10 h-12 w-full" onClick={() => go("active")}>Continue journey</Button></div>;
-    if (view === "missed") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col px-6 py-12"><div className="grid size-16 place-items-center rounded-full bg-danger-soft"><AlertTriangle className="size-8 text-danger"/></div><p className="mt-8 text-xs font-black text-danger">CHECK-IN MISSED</p><h1 className="mt-2 text-3xl font-black">Mom has been notified</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">You didn't respond to the safety check. Your trusted contact now has your journey details.</p><div className="mt-8 rounded-lg border bg-surface p-4"><p className="text-xs text-muted-foreground">Last known location</p><p className="mt-1 font-bold">Near {toLoc.name}</p><p className="mt-1 text-xs text-muted-foreground">11:42 PM · 1 minute ago</p></div><div className="mt-auto"><Button className="h-12 w-full" onClick={() => go("confirmed")}>I'm safe now</Button><Button variant="outline" className="mt-3 h-12 w-full text-danger" onClick={() => setSos("confirm")}><Phone/> Get emergency help</Button></div></div>;
+    if (view === "missed") return <div className="w-full max-w-2xl mx-auto flex min-h-[760px] flex-col px-6 py-12"><div className="grid size-16 place-items-center rounded-full bg-danger-soft"><AlertTriangle className="size-8 text-danger"/></div><p className="mt-8 text-xs font-black text-danger">LEVEL 3 ESCALATION · CHECK-IN MISSED</p><h1 className="mt-2 text-3xl font-black">Mom has been notified</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">30-second safety check expired without passenger response. High-priority alert dispatched to trusted contacts and transit safety cell.</p><div className="my-4"><AnomalyEngineWidget signals={anomalySignals} compact /></div><div className="mt-4 rounded-lg border bg-surface p-4"><p className="text-xs text-muted-foreground font-bold">Last known GPS location</p><p className="mt-1 font-extrabold text-foreground">Near {toLoc.name}</p><p className="mt-1 text-xs text-muted-foreground font-mono">Lat: {toLoc.coords[0].toFixed(4)}, Lon: {toLoc.coords[1].toFixed(4)} · 11:42 PM</p></div><div className="mt-auto pt-4"><Button className="h-12 w-full" onClick={() => go("confirmed")}>I'm safe now</Button><Button variant="outline" className="mt-3 h-12 w-full text-danger" onClick={() => setSos("confirm")}><Phone/> Contact KSRTC Emergency Cell (112)</Button></div></div>;
     if (view === "completed") return <div className="w-full max-w-2xl mx-auto min-h-[760px] px-5 py-10"><div className="flex flex-col items-center text-center"><div className="grid size-24 place-items-center rounded-full bg-success-soft"><Sparkles className="size-11 text-success"/></div><p className="mt-6 text-xs font-black text-success">ARRIVED SAFELY</p><h1 className="mt-2 text-3xl font-black">Journey complete</h1><p className="mt-2 text-sm text-muted-foreground">{toLoc.name} · {tripStats.eta}</p></div><div className="my-8 grid grid-cols-3 rounded-lg border bg-surface p-5 text-center shadow-soft"><Metric value={tripStats.distanceKm} label="Kilometres"/><Metric value={tripStats.durationMins} label="Minutes"/><Metric value="3/3" label="Checkpoints"/></div><div className="rounded-lg border bg-surface p-4"><Timeline/></div><Button className="mt-8 h-12 w-full" onClick={backHome}>Done</Button></div>;
     if (view === "contact") return <div className="min-h-[760px] bg-companion"><header className="flex items-center justify-between border-b bg-surface px-6 py-4"><div><p className="text-xs font-black text-primary">NIGHTWATCH</p><h1 className="font-extrabold">Trusted Contact</h1></div><div className="flex items-center gap-2 text-sm font-bold"><div className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary">M</div><span className="hidden sm:block">Mom's view</span></div></header><main className="mx-auto grid max-w-6xl gap-5 p-5 md:grid-cols-[1.1fr_.9fr]"><div className="overflow-hidden rounded-lg border bg-surface shadow-soft"><NightwatchLeafletMap dark={dark} from={fromLoc} to={toLoc} className="min-h-[460px] h-full"/></div><div className="space-y-4"><div className="rounded-lg border bg-surface p-5 shadow-soft"><div className="flex items-center gap-2 text-xs font-black"><StatusDot/> ALWIN IS ON TRACK</div><h2 className="mt-4 text-2xl font-black">Heading to {toLoc.name}</h2><p className="mt-1 text-sm text-muted-foreground">Updated just now · ETA {tripStats.eta}</p><div className="mt-5 grid grid-cols-3 border-t pt-5"><Metric value={tripStats.distanceKm} label="Total Distance"/><Metric value={tripStats.durationMins} label="Duration"/><Metric value="Active" label="Progress"/></div></div><div className="rounded-lg border bg-surface p-5"><h3 className="font-extrabold">Journey updates</h3><div className="mt-5"><Timeline/></div></div><div className="rounded-lg border border-warning/40 bg-warning-soft p-4"><p className="text-xs font-black">ATTENTION HISTORY</p><p className="mt-1 text-sm font-bold">Route change resolved at 11:28 PM</p><p className="text-xs text-muted-foreground">Alwin confirmed they were safe.</p></div></div></main></div>;
     if (view === "notifications") { const notes = [["Journey started",`Mom is now watching your journey to ${toLoc.name}`,"11:06 PM",Navigation],["Route deviation","A different route was detected","11:26 PM",AlertTriangle],["Safety check confirmed","You checked in as safe","11:28 PM",ShieldCheck],["Journey completed",`You arrived at ${toLoc.name} safely`,"Yesterday",Check]] as const; return <div className="w-full max-w-2xl mx-auto"><Header title="Notifications" back={backHome}/><div className="space-y-3 px-5 pb-24">{notes.map(([title,copy,time,Icon]) => <div key={title} className="flex gap-3 rounded-lg border bg-surface p-4"><div className="grid size-10 shrink-0 place-items-center rounded-md bg-primary-soft"><Icon className="size-5 text-primary"/></div><div><div className="flex flex-wrap items-center gap-x-2"><p className="text-sm font-bold">{title}</p><span className="text-[10px] text-muted-foreground">{time}</span></div><p className="mt-1 text-xs text-muted-foreground">{copy}</p></div></div>)}</div></div>; }
@@ -962,13 +1044,78 @@ export function NightwatchApp() {
         dark={dark}
         setDark={setDark}
         setSos={setSos}
+        onOpenDataset={() => setDatasetOpen(true)}
+        isSplitView={isSplitView}
+        onToggleSplitView={() => setIsSplitView(!isSplitView)}
       />
       <div className={cn("app-stage web-stage", view === "contact" && "contact-stage")}>
         <div className="app-viewport web-viewport">
-          <div className={cn("app-scroll-body flex-1 w-full", showNav && "pb-24 md:pb-8")}>
-            {content}
-          </div>
-          {showNav && (
+          {isSplitView ? (
+            <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+              <div className="mb-5 flex flex-col sm:flex-row items-center justify-between gap-3 bg-primary-soft/70 rounded-2xl p-4 border border-primary/20">
+                <div className="flex items-center gap-2.5">
+                  <div className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground font-black text-xs">
+                    2S
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black">HACKATHON TWO-SCREEN LIVE SIMULATION</h3>
+                    <p className="text-[11px] text-muted-foreground">Simultaneous demonstration of Passenger Device (Left) and Mom's Companion View (Right)</p>
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => setIsSplitView(false)} className="text-xs font-bold">
+                  Exit Dual View
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                <div className="rounded-2xl border bg-surface p-4 sm:p-5 shadow-soft">
+                  <div className="mb-4 flex items-center justify-between border-b pb-3">
+                    <span className="text-xs font-black text-primary flex items-center gap-1.5">
+                      <Smartphone className="size-4" /> PASSENGER VIEW ({view.toUpperCase()})
+                    </span>
+                    <span className="text-[11px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Interactive</span>
+                  </div>
+                  {content}
+                </div>
+
+                <div className="rounded-2xl border bg-surface p-4 sm:p-5 shadow-soft">
+                  <div className="mb-4 flex items-center justify-between border-b pb-3">
+                    <span className="text-xs font-black text-success flex items-center gap-1.5">
+                      <Users className="size-4" /> TRUSTED COMPANION (MOM'S PHONE)
+                    </span>
+                    <span className="text-[11px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full animate-pulse">● Live Synced</span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="rounded-xl border bg-surface p-4 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-xs font-black">
+                          <StatusDot tone={view === "missed" ? "danger" : view === "check" || view === "deviation" || view === "stopped" ? "warning" : "success"} />
+                          {view === "missed" ? "🚨 MISSED CHECK-IN ALERT RECEIVED" : view === "check" ? "⚠️ PASSENGER CHECK-IN PENDING" : view === "deviation" ? "⚠️ ROUTE DEVIATION DETECTED" : view === "stopped" ? "⚠️ EXTENDED STOP NOTED" : "🟢 JOURNEY MONITORING ACTIVE"}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-semibold">ETA {tripStats.eta}</span>
+                      </div>
+                      <p className="mt-2 text-sm font-extrabold truncate">Passenger: Alwin George → {toLoc.name}</p>
+                      <div className="mt-3 grid grid-cols-3 divide-x border-t pt-3 text-center">
+                        <Metric value={tripStats.distanceKm} label="Distance" />
+                        <Metric value={tripStats.durationMins} label="Duration" />
+                        <Metric value={view === "missed" ? "Escalated" : "Watching"} label="Status" />
+                      </div>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border h-[320px]">
+                      <NightwatchLeafletMap compact dark={dark} from={fromLoc} to={toLoc} className="h-full w-full" />
+                    </div>
+                    <AnomalyEngineWidget signals={anomalySignals} compact />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={cn("app-scroll-body flex-1 w-full", showNav && "pb-24 md:pb-8")}>
+              {content}
+            </div>
+          )}
+
+          {showNav && !isSplitView && (
             <nav
               className="fixed bottom-0 inset-x-0 mx-auto max-w-lg w-full z-30 grid h-20 grid-cols-4 border-t bg-surface/95 pb-2 backdrop-blur shadow-soft md:hidden"
             >
@@ -989,46 +1136,26 @@ export function NightwatchApp() {
           )}
         </div>
       </div>
-      {demoOpen && (
-        <div
-          className={cn(
-            "fixed inset-x-3 z-[90] mx-auto max-w-xl rounded-lg border bg-surface p-3 shadow-lift",
-            showNav ? "bottom-36 lg:bottom-20" : "bottom-20 lg:bottom-20"
-          )}
-        >
-          <div className="mb-2 flex items-center justify-between px-1">
-            <p className="text-xs font-black">DEMO STATE SWITCHER</p>
-            <Button size="icon" variant="ghost" onClick={() => setDemoOpen(false)}>
-              <X />
-            </Button>
-          </div>
-          <div className="flex max-h-44 flex-wrap gap-2 overflow-y-auto">
-            {demoViews.map((item) => (
-              <Button
-                key={item.label}
-                variant={view === item.view ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  go(item.view);
-                  if (item.label === "SOS") setSos("confirm");
-                }}
-              >
-                {item.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-      <button
-        onClick={() => setDemoOpen(!demoOpen)}
-        className={cn(
-          "fixed z-[95] flex items-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-xs font-bold text-primary-foreground shadow-lift transition-all",
-          "left-1/2 -translate-x-1/2 lg:left-auto lg:right-6 lg:translate-x-0",
-          showNav ? "bottom-24 lg:bottom-6" : "bottom-4 lg:bottom-6"
-        )}
-      >
-        <Menu className="size-4 text-primary" /> Demo mode
-      </button>
+
+      {/* Kerala Dataset Explorer Modal */}
+      <KeralaDatasetExplorer
+        isOpen={datasetOpen}
+        onClose={() => setDatasetOpen(false)}
+        onSelectStation={(st) => {
+          setFromLoc(st);
+        }}
+      />
+
+      {/* 5-Minute Scripted Pitch Assistant */}
+      <PitchDemoController
+        currentView={view}
+        onSelectStep={handleSelectPitchStep}
+        isOpen={demoOpen}
+        onToggleOpen={() => setDemoOpen(!demoOpen)}
+        isSplitView={isSplitView}
+        onToggleSplitView={() => setIsSplitView(!isSplitView)}
+        onOpenDataset={() => setDatasetOpen(true)}
+      />
       {sos !== "closed" && <div className="fixed inset-0 z-[100] flex items-end justify-center bg-overlay p-4"><div className="w-full max-w-md rounded-lg bg-surface p-5 shadow-lift">{sos === "confirm" ? <><div className="mx-auto grid size-14 place-items-center rounded-full bg-danger-soft"><Phone className="size-6 text-danger"/></div><h2 className="mt-4 text-center text-xl font-black">Need immediate help?</h2><p className="mt-2 text-center text-sm text-muted-foreground">This demo will notify Mom and share your last known location.</p><Button variant="destructive" className="mt-6 h-12 w-full" onClick={() => setSos("sent")}><Phone/> Send SOS now</Button><Button variant="ghost" className="mt-2 w-full" onClick={() => setSos("closed")}>Cancel</Button></> : <div className="py-5 text-center"><div className="mx-auto grid size-16 place-items-center rounded-full bg-danger-soft"><Check className="size-8 text-danger"/></div><p className="mt-5 text-xs font-black text-danger">SOS SENT</p><h2 className="mt-1 text-2xl font-black">Help is being contacted</h2><p className="mt-2 text-sm text-muted-foreground">Mom received your location and journey details.</p><Button className="mt-6 h-11 w-full" onClick={() => setSos("closed")}>Return to journey</Button></div>}</div></div>}
       {addContact && <div className="fixed inset-0 z-[100] flex items-end justify-center bg-overlay p-4"><div className="w-full max-w-md rounded-lg bg-surface p-5"><div className="flex items-center justify-between"><h2 className="text-xl font-black">Add trusted contact</h2><Button size="icon" variant="ghost" onClick={() => setAddContact(false)}><X/></Button></div><label className="mt-5 block text-xs font-bold">NAME</label><div className="mt-2 rounded-md border p-3 text-sm text-muted-foreground">e.g. Dad</div><label className="mt-4 block text-xs font-bold">PHONE</label><div className="mt-2 rounded-md border p-3 text-sm text-muted-foreground">+91 98765 43210</div>{["Journey updates","Safety alerts","SOS notifications"].map((label) => <div key={label} className="flex items-center justify-between border-b py-4"><span className="text-sm font-semibold">{label}</span><Switch defaultChecked/></div>)}<Button className="mt-5 h-12 w-full" onClick={() => setAddContact(false)}><Plus/> Add contact</Button></div></div>}
 
