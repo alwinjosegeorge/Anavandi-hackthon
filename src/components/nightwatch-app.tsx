@@ -1891,16 +1891,7 @@ export function NightwatchApp() {
         }}
       />
 
-      {/* 5-Minute Scripted Pitch Assistant */}
-      <PitchDemoController
-        currentView={view}
-        onSelectStep={handleSelectPitchStep}
-        isOpen={demoOpen}
-        onToggleOpen={() => setDemoOpen(!demoOpen)}
-        isSplitView={isSplitView}
-        onToggleSplitView={() => setIsSplitView(!isSplitView)}
-        onOpenDataset={() => setDatasetOpen(true)}
-      />
+
       {sos !== "closed" && <div className="fixed inset-0 z-[100] flex items-end justify-center bg-overlay p-4"><div className="w-full max-w-md rounded-lg bg-surface p-5 shadow-lift">{sos === "confirm" ? <><div className="mx-auto grid size-14 place-items-center rounded-full bg-danger-soft"><Phone className="size-6 text-danger"/></div><h2 className="mt-4 text-center text-xl font-black">Need immediate help?</h2><p className="mt-2 text-center text-sm text-muted-foreground">This demo will notify Mom and share your last known location.</p><Button variant="destructive" className="mt-6 h-12 w-full" onClick={() => setSos("sent")}><Phone/> Send SOS now</Button><Button variant="ghost" className="mt-2 w-full" onClick={() => setSos("closed")}>Cancel</Button></> : <div className="py-5 text-center"><div className="mx-auto grid size-16 place-items-center rounded-full bg-danger-soft"><Check className="size-8 text-danger"/></div><p className="mt-5 text-xs font-black text-danger">SOS SENT</p><h2 className="mt-1 text-2xl font-black">Help is being contacted</h2><p className="mt-2 text-sm text-muted-foreground">Mom received your location and journey details.</p><Button className="mt-6 h-11 w-full" onClick={() => setSos("closed")}>Return to journey</Button></div>}</div></div>}
       {addContact && <div className="fixed inset-0 z-[100] flex items-end justify-center bg-overlay p-4"><div className="w-full max-w-md rounded-lg bg-surface p-5"><div className="flex items-center justify-between"><h2 className="text-xl font-black">Add trusted contact</h2><Button size="icon" variant="ghost" onClick={() => setAddContact(false)}><X/></Button></div><label className="mt-5 block text-xs font-bold">NAME</label><div className="mt-2 rounded-md border p-3 text-sm text-muted-foreground">e.g. Dad</div><label className="mt-4 block text-xs font-bold">PHONE</label><div className="mt-2 rounded-md border p-3 text-sm text-muted-foreground">+91 98765 43210</div>{["Journey updates","Safety alerts","SOS notifications"].map((label) => <div key={label} className="flex items-center justify-between border-b py-4"><span className="text-sm font-semibold">{label}</span><Switch defaultChecked/></div>)}<Button className="mt-5 h-12 w-full" onClick={() => setAddContact(false)}><Plus/> Add contact</Button></div></div>}
 
