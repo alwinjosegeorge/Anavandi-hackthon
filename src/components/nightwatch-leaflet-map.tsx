@@ -46,13 +46,19 @@ const DEVIATION_POINTS: [number, number][] = [
 
 function loadLeafletScript(): Promise<any> {
   return new Promise((resolve, reject) => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
     if (window.L) {
       resolve(window.L);
       return;
     }
-    const existing = document.getElementById("leaflet-script");
+    const existing = document.getElementById("leaflet-script") as HTMLScriptElement | null;
     if (existing) {
+      if (window.L) {
+        resolve(window.L);
+        return;
+      }
       existing.addEventListener("load", () => resolve(window.L));
       existing.addEventListener("error", reject);
       return;
@@ -280,6 +286,8 @@ export function NightwatchLeafletMap({
           mapInstanceRef.current.invalidateSize();
         }
       }, 250);
+    }).catch((err) => {
+      console.warn("Leaflet map could not be loaded:", err);
     });
 
     return () => {
