@@ -79,23 +79,17 @@ function DesktopNavBar({
   dark,
   setDark,
   setSos,
-  onOpenDataset,
-  isSplitView,
-  onToggleSplitView,
 }: {
   view: View;
   go: (next: View) => void;
   dark: boolean;
   setDark: (d: boolean) => void;
   setSos: (s: "closed" | "confirm" | "sent") => void;
-  onOpenDataset: () => void;
-  isSplitView: boolean;
-  onToggleSplitView: () => void;
 }) {
   const links: { label: string; view: View; icon: LucideIcon }[] = [
     { label: "Home", view: "home", icon: Home },
-    { label: "Plan Route", view: "plan", icon: RouteIcon },
-    { label: "Live Journey", view: "active", icon: Navigation },
+    { label: "Plan", view: "plan", icon: RouteIcon },
+    { label: "Live Track", view: "active", icon: Navigation },
     { label: "Safety", view: "safety", icon: ShieldCheck },
     { label: "History", view: "history", icon: History },
     { label: "Contacts", view: "contacts", icon: Users },
@@ -103,95 +97,75 @@ function DesktopNavBar({
   ];
 
   return (
-    <header className="sticky top-0 z-50 h-16 w-full border-b bg-surface/95 px-3 sm:px-6 lg:px-8 backdrop-blur shadow-sm hidden md:flex items-center justify-between">
-      <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => go("home")}>
-        <div className="grid size-9 sm:size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow">
-          <ShieldCheck className="size-5 sm:size-6" />
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-black text-base sm:text-lg tracking-tight">NIGHTWATCH</span>
-            <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold text-primary">
-              ആനവണ്ടി
-            </span>
+    <header className="sticky top-0 z-50 h-16 w-full border-b bg-surface/95 px-4 sm:px-6 lg:px-8 backdrop-blur shadow-xs hidden md:block">
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-3">
+        {/* Brand */}
+        <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => go("home")}>
+          <div className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow">
+            <ShieldCheck className="size-5" />
           </div>
-          <p className="text-[9px] sm:text-[10px] text-muted-foreground font-semibold">Kerala Night Transit Safety</p>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-base sm:text-lg tracking-tight">NIGHTWATCH</span>
+              <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold text-primary">
+                ആനവണ്ടി
+              </span>
+            </div>
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground font-semibold">Kerala Night Transit Safety</p>
+          </div>
         </div>
-      </div>
 
-      <nav className="flex items-center gap-0.5 xl:gap-1">
-        {links.map(({ label, view: target, icon: Icon }) => {
-          const isActive = view === target;
-          return (
-            <button
-              key={label}
-              onClick={() => go(target)}
-              className={cn(
-                "flex items-center gap-1 rounded-lg px-2 xl:px-3 py-1.5 text-xs font-bold transition-all shrink-0",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-soft"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <Icon className="size-3.5" />
-              <span>{label}</span>
-            </button>
-          );
-        })}
-      </nav>
+        {/* Navigation Links */}
+        <nav className="flex items-center gap-0.5 lg:gap-1">
+          {links.map(({ label, view: target, icon: Icon }) => {
+            const isActive = view === target;
+            return (
+              <button
+                key={label}
+                onClick={() => go(target)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-2 lg:px-2.5 py-1.5 text-xs font-bold transition-all shrink-0",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-soft"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Icon className="size-3.5" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-      <div className="flex items-center gap-2 xl:gap-2.5 shrink-0">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onOpenDataset}
-          className="hidden lg:flex text-xs font-bold gap-1.5 h-8 border-primary/30 text-foreground hover:bg-primary-soft"
-          title="Inspect 60+ KSRTC bus stands across Kerala"
-        >
-          <Database className="size-3.5 text-primary" />
-          <span>KSRTC Dataset</span>
-        </Button>
+        {/* Right Controls */}
+        <div className="flex items-center gap-2 lg:gap-3 shrink-0">
+          <button
+            onClick={() => go("safety")}
+            className="hidden sm:flex items-center gap-1.5 rounded-full border bg-muted/60 px-2.5 lg:px-3 py-1.5 text-xs font-bold hover:bg-muted transition-colors"
+          >
+            <span className="size-2 rounded-full bg-success animate-pulse" />
+            <span className="text-[11px] font-bold">Systems Ready</span>
+          </button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onToggleSplitView}
-          className={cn(
-            "hidden xl:flex text-xs font-bold gap-1.5 h-8",
-            isSplitView && "bg-primary text-primary-foreground border-primary"
-          )}
-          title="View Passenger and Trusted Contact screens side-by-side"
-        >
-          <Columns2 className="size-3.5" />
-          <span>{isSplitView ? "Exit Dual View" : "Dual Screen Demo"}</span>
-        </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="font-extrabold text-xs shadow-soft px-3.5 h-8"
+            onClick={() => setSos("confirm")}
+          >
+            <Phone className="size-3.5 mr-1" /> SOS
+          </Button>
 
-        <button
-          onClick={() => go("safety")}
-          className="hidden sm:flex items-center gap-1.5 rounded-full border bg-muted/60 px-2.5 py-1.5 text-xs font-bold hover:bg-muted transition-colors"
-        >
-          <span className="size-2 rounded-full bg-success animate-pulse" />
-          <span className="text-[11px] font-bold">Systems Ready</span>
-        </button>
-
-        <Button
-          variant="destructive"
-          size="sm"
-          className="font-extrabold text-xs shadow-soft px-3"
-          onClick={() => setSos("confirm")}
-        >
-          <Phone className="size-3.5 mr-1" /> SOS
-        </Button>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setDark(!dark)}
-          className="size-8 sm:size-9 rounded-lg"
-          title="Toggle Dark Mode"
-        >
-          {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setDark(!dark)}
+            className="size-8 sm:size-9 rounded-lg"
+            title="Toggle Dark Mode"
+          >
+            {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </Button>
+        </div>
       </div>
     </header>
   );
@@ -715,16 +689,21 @@ export function NightwatchApp() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-primary/20 bg-primary-soft/60 p-5 flex items-center justify-between">
+            <div className="rounded-2xl border border-primary/20 bg-primary-soft/60 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase text-primary tracking-wide">Kerala State Transit Safety Network (ആനവണ്ടി)</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Active monitoring covering KSRTC Depots and Municipal transit lines across all 14 districts with instant deviation alerts.
                 </p>
               </div>
-              <Button size="sm" onClick={() => go("plan")} className="shrink-0 ml-4 font-bold">
-                Route Plan <ChevronRight className="size-4 ml-1" />
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button size="sm" variant="outline" onClick={() => setDatasetOpen(true)} className="font-bold text-xs h-9">
+                  <Database className="size-3.5 mr-1 text-primary" /> Dataset
+                </Button>
+                <Button size="sm" onClick={() => setIsSplitView(true)} className="font-bold text-xs h-9">
+                  <Columns2 className="size-3.5 mr-1" /> Dual Screen
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -1044,9 +1023,6 @@ export function NightwatchApp() {
         dark={dark}
         setDark={setDark}
         setSos={setSos}
-        onOpenDataset={() => setDatasetOpen(true)}
-        isSplitView={isSplitView}
-        onToggleSplitView={() => setIsSplitView(!isSplitView)}
       />
       <div className={cn("app-stage web-stage", view === "contact" && "contact-stage")}>
         <div className="app-viewport web-viewport">

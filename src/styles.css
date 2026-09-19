@@ -204,6 +204,11 @@
   box-shadow: none;
   overflow: visible;
 }
+.web-viewport .app-scroll-body {
+  overflow: visible;
+  height: auto;
+  flex: 1 1 auto;
+}
 .device-stage { padding: 24px 16px 60px; }
 .device-frame {
   width: min(100%, 390px);
